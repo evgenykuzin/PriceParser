@@ -32,7 +32,6 @@ public class Worker implements Runnable {
             var productsList = dataManager.parseProducts(maps.values());
             var productsQueue = new ArrayBlockingQueue<Product>(productsList.size());
             productsQueue.addAll(new HashSet<>(productsList));
-            System.out.println("productsQueue = " + productsQueue);
             var colsSet = new LinkedHashSet<>(maps.values().iterator().next().keySet());
             var colNames = colsSet.toArray(String[]::new);
             System.out.println("colNames = " + Arrays.toString(colNames));
@@ -48,7 +47,10 @@ public class Worker implements Runnable {
                 var actualPrice = product.getPrice();
                 log("product: "+product.toString());
                 var parsedProducts = shopParser.parseProducts(searchKey);
-                if (parsedProducts.isEmpty()) continue;
+                if (parsedProducts.isEmpty()) {
+                    log("no products was found");
+                    continue;
+                }
                 var lowerPriceProduct = shopParser.getLowerPriceProduct(parsedProducts, product);
                 var lowerPrice = lowerPriceProduct.getPrice();
                 if (lowerPrice < actualPrice) {
@@ -66,6 +68,7 @@ public class Worker implements Runnable {
             }
         } catch (Throwable e) {
             e.printStackTrace();
+            log(e.getMessage());
         } finally {
             shopParser.quit();
         }

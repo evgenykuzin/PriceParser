@@ -15,6 +15,6 @@ public class App {
         Worker worker = new Worker();
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
         loger.log("run");
-        executorService.scheduleAtFixedRate(new VerboseRunnable(worker, true), 0, 55, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(new VerboseRunnable(worker, true), 0, 25, TimeUnit.SECONDS);
     }
 }
