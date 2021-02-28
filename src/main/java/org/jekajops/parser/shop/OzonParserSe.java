@@ -6,8 +6,6 @@ import org.jekajops.entities.Product;
 import org.openqa.selenium.*;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,11 +50,7 @@ public class OzonParserSe implements ShopParser {
         return products;
     }
 
-    private void getDocument(int page, String key) {
-        Proxy proxy = new Proxy(
-                Proxy.Type.HTTP,
-                InetSocketAddress.createUnresolved("146.66.172.217", 8080)
-        );
+    private void search(int page, String key) {
         try {
             webDriver.get(getUrl(page, key));
         } catch (WebDriverException e) {
@@ -66,7 +60,7 @@ public class OzonParserSe implements ShopParser {
     }
 
     private List<WebElement> getProductsElements(int page, String key) throws IOException {
-        getDocument(page, key);
+        search(page, key);
         List<WebElement> result = new ArrayList<>();
         try {
             var widgetSearchResultContainer = webDriver
@@ -90,6 +84,7 @@ public class OzonParserSe implements ShopParser {
 
     public void initWebDriver() {
         webDriver = AppConfig.getWebDriver();
+        System.out.println("webDriver = " + webDriver);
     }
 
     protected WebElement findElementByXpath(String xpath) {

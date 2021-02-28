@@ -1,9 +1,9 @@
 package org.jekajops.app.cnfg;
 
 import org.apache.commons.exec.environment.EnvironmentUtils;
-import org.jekajops.app.gui.GUI;
 import org.jekajops.app.loger.Loger;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
@@ -62,7 +62,7 @@ public class AppConfig {
     }
 
     private static void log(String msg) {
-        loger.log("AppConfig", msg);
+        if (loger != null) loger.log("AppConfig", msg);
     }
 
 }
