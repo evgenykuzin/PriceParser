@@ -23,11 +23,19 @@ public class Worker implements Runnable {
 
     @Override
     public void run() {
+        runTask();
+    }
+
+    private void log(String msg){
+        loger.log(this.getClass().getName(), msg);
+    }
+
+    public void runTask(){
         try {
             //ExecutorService executorService = Executors.newCachedThreadPool();
             DataManager dataManager = DataManagerFactory.getOzonCsvManager(AppConfig.getExelPath());
             dataManager = DataManagerFactory.getOzonWebCsvManager();
-            shopParser = new OzonParserSe();
+            ShopParser shopParser = new OzonParserSe();
             var maps = dataManager.parseMaps();
             var productsList = dataManager.parseProducts(maps.values());
             var productsQueue = new ArrayBlockingQueue<Product>(productsList.size());
@@ -72,9 +80,5 @@ public class Worker implements Runnable {
         } finally {
             shopParser.quit();
         }
-    }
-
-    private void log(String msg){
-        loger.log(this.getClass().getName(), msg);
     }
 }
