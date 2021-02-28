@@ -1,7 +1,6 @@
 package org.jekajops.worker;
 
 import org.jekajops.app.cnfg.AppConfig;
-import org.jekajops.app.gui.GUI;
 import org.jekajops.entities.Product;
 import org.jekajops.parser.exel.DataManager;
 import org.jekajops.parser.exel.DataManagerFactory;
@@ -13,6 +12,8 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static org.jekajops.app.cnfg.AppConfig.loger;
 
 public class Worker implements Runnable {
     private ShopParser shopParser;
@@ -71,6 +72,6 @@ public class Worker implements Runnable {
     }
 
     private void log(String msg){
-        GUI.log(this.getClass().getName(), msg);
+        loger.log(this.getClass().getName(), msg);
     }
 }

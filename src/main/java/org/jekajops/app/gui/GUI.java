@@ -6,16 +6,17 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 import static java.awt.BorderLayout.*;
+import static org.jekajops.app.cnfg.AppConfig.loger;
 
 public class GUI {
     private JFrame frame;
-    private static final TextArea logComponent = initLogComponent();
+    public static final TextArea LOG_COMPONENT = initLogComponent();
     private static final int SIZE = 500;
     private ActionListener runActionListener;
     public void start() {
         frame = getFrame();
         frame.add(getMainPanel());
-        var simpleDnD = new DropPanel(frame.getContentPane(), logComponent);
+        var simpleDnD = new DropPanel(frame.getContentPane(), LOG_COMPONENT);
         frame.add(simpleDnD, AFTER_LAST_LINE);
     }
 
@@ -37,7 +38,7 @@ public class GUI {
         panel.setPreferredSize(new Dimension(SIZE, SIZE));
         panel.setLayout(new BorderLayout());
         panel.add(getButton("run", runActionListener), PAGE_START);
-        panel.add(logComponent, AFTER_LINE_ENDS);
+        panel.add(LOG_COMPONENT, AFTER_LINE_ENDS);
         return panel;
     }
 
@@ -65,13 +66,11 @@ public class GUI {
         return textArea;
     }
 
-    public static void log(String from, String msg) {
-        System.out.printf("LOG: %s%n", msg);
-        logComponent.append(String.format(">From (%s):-----[%s].", from, msg));
-        logComponent.append("\n");
+    private static void log(String from, String msg) {
+        loger.log(from, msg);
     }
 
-    public static void log(String msg) {
+    private static void log(String msg) {
         log("main", msg);
     }
 

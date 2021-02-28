@@ -1,7 +1,6 @@
 package org.jekajops.parser.shop;
 
 import org.jekajops.app.cnfg.AppConfig;
-import org.jekajops.app.gui.GUI;
 import org.jekajops.entities.OzonProduct;
 import org.jekajops.entities.Product;
 import org.openqa.selenium.*;
@@ -11,6 +10,8 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.jekajops.app.cnfg.AppConfig.loger;
 
 public class OzonParserSe implements ShopParser {
     private static final String URL = "https://www.ozon.ru/search/?from_global=true&page=%d&text=%s";
@@ -108,7 +109,7 @@ public class OzonParserSe implements ShopParser {
     }
 
     private void log(String msg) {
-        GUI.log(getClass().getName(), msg);
+        loger.log(getClass().getName(), msg);
     }
 
     @Override

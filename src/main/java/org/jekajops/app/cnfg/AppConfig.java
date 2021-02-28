@@ -2,6 +2,7 @@ package org.jekajops.app.cnfg;
 
 import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.jekajops.app.gui.GUI;
+import org.jekajops.app.loger.Loger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -15,9 +16,14 @@ public class AppConfig {
     public static final Preferences preferences = Preferences.userRoot();
     public static final String NEW_PRICE_COL_NAME = "Проценка";
     public static final String DIFF_PRICES_COL_NAME = "Разница с проценкой";
+    public static Loger loger;
 
     public static String getExelPath() {
         return preferences.get(EXEL_PATH_KEY, "");
+    }
+
+    public static void setLoger(Loger Loger1) {
+        loger = Loger1;
     }
 
     public static WebDriver getWebDriver() {
@@ -56,7 +62,7 @@ public class AppConfig {
     }
 
     private static void log(String msg) {
-        GUI.log("AppConfig", msg);
+        loger.log("AppConfig", msg);
     }
 
 }
