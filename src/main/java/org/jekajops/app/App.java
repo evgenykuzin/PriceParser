@@ -12,9 +12,11 @@ import static org.jekajops.app.cnfg.AppConfig.loger;
 public class App {
     public static void main(String[] args) {
         AppConfig.setLoger(new BasicLoger());
-        Worker worker = new Worker();
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
         loger.log("run");
-        executorService.scheduleAtFixedRate(new VerboseRunnable(worker, true), 0, 25, TimeUnit.SECONDS);
+        while (true) {
+            new Worker().run();
+        }
+        //executorService.scheduleAtFixedRate(new VerboseRunnable(new Worker(), true), 0, 25, TimeUnit.SECONDS);
     }
 }

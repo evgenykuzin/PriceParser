@@ -24,7 +24,7 @@ public class Worker implements Runnable {
     @Override
     public void run() {
         try {
-            ExecutorService executorService = Executors.newCachedThreadPool();
+            //ExecutorService executorService = Executors.newCachedThreadPool();
             DataManager dataManager = DataManagerFactory.getOzonCsvManager(AppConfig.getExelPath());
             dataManager = DataManagerFactory.getOzonWebCsvManager();
             shopParser = new OzonParserSe();
