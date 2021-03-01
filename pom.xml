@@ -20,10 +20,6 @@
                             <mainClass>${mainClass}</mainClass>
                             <id>workerBot</id>
                         </program>
-                        <program>
-                            <mainClass>org.jekajops.parser.shop.OzonParserSe</mainClass>
-                            <id>test</id>
-                        </program>
                     </programs>
                     <configurationDirectory>conf</configurationDirectory>
                     <copyConfigurationDirectory>true</copyConfigurationDirectory>

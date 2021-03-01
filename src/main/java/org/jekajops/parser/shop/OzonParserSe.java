@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.jekajops.app.cnfg.AppConfig.loger;
+
 public class OzonParserSe implements ShopParser {
     private static final String URL = "https://www.ozon.ru/search/?from_global=true&page=%d&text=%s";
     private WebDriver webDriver;
@@ -102,25 +104,13 @@ public class OzonParserSe implements ShopParser {
         if (webDriver != null) webDriver.quit();
     }
 
-//    private void log(String msg) {
-//        loger.log(getClass().getName(), msg);
-//    }
-
     private void log(String msg) {
-        System.out.println("msg = " + msg);
-   }
+        loger.log(getClass().getName(), msg);
+    }
 
     @Override
     protected void finalize() throws Throwable {
         quit();
     }
 
-    public static void main(String[] args) {
-        var barc = "4640012526196";
-        var sh = new OzonParserSe();
-        var ars = sh.parseProducts(barc);
-        System.out.println("ars = " + ars);
-        var ans = sh.getLowerPriceProduct(ars, new OzonProduct(1, 1, "1","1", "1"));
-        System.out.println("ans = " + ans);
-    }
 }
