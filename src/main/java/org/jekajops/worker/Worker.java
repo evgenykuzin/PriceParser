@@ -37,7 +37,8 @@ public class Worker implements Runnable {
             var maps = dataManager.parseMaps();
             var productsList = dataManager.parseProducts(maps.values());
             var productsQueue = new ArrayBlockingQueue<Product>(productsList.size());
-            productsQueue.addAll(new HashSet<>(productsList));
+            Collections.shuffle(productsList);
+            productsQueue.addAll(productsList);
             var colsSet = new LinkedHashSet<>(maps.values().iterator().next().keySet());
             var colNames = colsSet.toArray(String[]::new);
             log("colNames = " + Arrays.toString(colNames));
