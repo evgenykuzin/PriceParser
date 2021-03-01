@@ -111,4 +111,13 @@ public class OzonParserSe implements ShopParser {
     protected void finalize() throws Throwable {
         quit();
     }
+
+    public static void main(String[] args) {
+        var barc = "4640012526196";
+        var sh = new OzonParserSe();
+        var ars = sh.parseProducts(barc);
+        System.out.println("ars = " + ars);
+        var ans = sh.getLowerPriceProduct(ars, new OzonProduct(1, 1, "1","1", "1"));
+        System.out.println("ans = " + ans);
+    }
 }
