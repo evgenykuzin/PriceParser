@@ -27,6 +27,7 @@ public class OzonParserSe implements ShopParser {
             List<WebElement> elements;
             while (!(elements = getProductsElements(page, key)).isEmpty()) {
                 System.out.println("elements = " + elements);
+                Thread.sleep(12345);
                 for (WebElement element : elements) {
                     var name = element
                             .findElement(By.xpath(".//a[@class='a2g0 tile-hover-target']"))
@@ -42,7 +43,6 @@ public class OzonParserSe implements ShopParser {
                 }
                 if (page > 10) break;
                 page++;
-                Thread.sleep(12345);
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();

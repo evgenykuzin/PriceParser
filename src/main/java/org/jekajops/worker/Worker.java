@@ -45,6 +45,7 @@ public class Worker implements Runnable {
                 //executorService.execute(() -> {
                 var product = productsQueue.poll();
                 var searchKey = product.getBarcode();
+                Thread.sleep(12345);
                 if (searchKey.contains("OZN")) {
                     searchKey = XmarketParser.parseBarcode(product.getArticle());
                 }
@@ -69,9 +70,9 @@ public class Worker implements Runnable {
                 var diff = lowerPriceProduct.getPrice() - actualPrice;
                 map.put(AppConfig.DIFF_PRICES_COL_NAME, String.valueOf(diff));
                 maps.put(mapKey, map);
+                log("Updated!");
                 dataManager.writeAll(maps.values(), colNames);
                 //});
-                Thread.sleep(12345);
             }
         } catch (Throwable e) {
             e.printStackTrace();
