@@ -71,6 +71,7 @@ public class Worker implements Runnable {
                 maps.put(mapKey, map);
                 dataManager.writeAll(maps.values(), colNames);
                 //});
+                Thread.sleep(12345);
             }
         } catch (Throwable e) {
             e.printStackTrace();
