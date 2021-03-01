@@ -8,6 +8,7 @@ import org.openqa.selenium.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static org.jekajops.app.cnfg.AppConfig.logger;
 
@@ -27,12 +28,14 @@ public class OzonParserSe implements ShopParser {
             List<WebElement> elements;
             while (!(elements = getProductsElements(page, key)).isEmpty()) {
                 log("elements = " + elements);
-                Thread.sleep(12345);
+                Thread.sleep(30*1000+new Random().nextInt(60*1000));
                 for (WebElement element : elements) {
+                    Thread.sleep(new Random().nextInt(1000));
                     var name = element
                             .findElement(By.xpath(".//a[@class='a2g0 tile-hover-target']"))
                             .getText();
                     log("name = " + name);
+                    Thread.sleep(new Random().nextInt(1000));
                     var price = element
                             .findElement(By.xpath(".//div[@class='b5v4 a5d2 item']"))
                             .findElement(By.tagName("span"))
@@ -65,10 +68,11 @@ public class OzonParserSe implements ShopParser {
         }
     }
 
-    private List<WebElement> getProductsElements(int page, String key) throws IOException {
+    private List<WebElement> getProductsElements(int page, String key) throws IOException, InterruptedException {
         search(page, key);
         List<WebElement> result = new ArrayList<>();
         try {
+            Thread.sleep(new Random().nextInt(1000));
             var widgetSearchResultContainer = webDriver
                     .findElements(By.xpath("//div[@class='widget-search-result-container ao3']"));
             if (widgetSearchResultContainer.isEmpty()) {
@@ -76,6 +80,7 @@ public class OzonParserSe implements ShopParser {
                 log(webDriver.getPageSource());
                 return result;
             }
+            Thread.sleep(new Random().nextInt(1000));
             result = widgetSearchResultContainer
                     .get(0)
                     .findElements(By.xpath(".//div[@class='a0c6 a0c9 a0c8']"));
@@ -94,18 +99,6 @@ public class OzonParserSe implements ShopParser {
 
     public void initWebDriver() {
         webDriver = AppConfig.getWebDriver();
-    }
-
-    protected WebElement findElementByXpath(String xpath) {
-        return webDriver.findElement(By.xpath(xpath));
-    }
-
-    protected WebElement findElementBy(By by) {
-        return webDriver.findElement(by);
-    }
-
-    void cleanText(WebElement element, int n) {
-        element.sendKeys("\b".repeat(n));
     }
 
     public void quit() {

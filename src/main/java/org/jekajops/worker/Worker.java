@@ -46,7 +46,7 @@ public class Worker implements Runnable {
                 //executorService.execute(() -> {
                 var product = productsQueue.poll();
                 var searchKey = product.getBarcode();
-                Thread.sleep(12345);
+                Thread.sleep(30*1000+new Random().nextInt(60*1000));
                 if (searchKey.contains("OZN")) {
                     searchKey = XmarketParser.parseBarcode(product.getArticle());
                 }
