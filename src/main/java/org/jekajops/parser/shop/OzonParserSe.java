@@ -73,12 +73,13 @@ public class OzonParserSe implements ShopParser {
                     .findElements(By.xpath("//div[@class='widget-search-result-container ao3']"));
             if (widgetSearchResultContainer.isEmpty()) {
                 log("Error: No class: widget-search-result-container");
+                log(webDriver.getPageSource());
                 return result;
             }
             result = widgetSearchResultContainer
                     .get(0)
                     .findElements(By.xpath(".//div[@class='a0c6 a0c9 a0c8']"));
-            if (result.isEmpty()) log("Error: No class: a0c6 a0c9 a0c8\nWebElements is empty");
+            if (result.isEmpty()) log("Error: No class: a0c6 a0c9 a0c8\nWebElements is empty\n\n" + webDriver.getPageSource());
         } catch (NoSuchElementException e) {
             e.printStackTrace();
             log(e.getMessage());
