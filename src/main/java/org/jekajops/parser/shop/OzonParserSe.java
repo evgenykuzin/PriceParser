@@ -53,7 +53,11 @@ public class OzonParserSe implements ShopParser {
 
     private void search(int page, String key) {
         try {
-            webDriver.get(getUrl(page, key));
+            var url = getUrl(page, key);
+            webDriver.get(url);
+            if (!webDriver.getCurrentUrl().equals(url)) {
+                log("Error: " + webDriver.getCurrentUrl() + " != " + url);
+            }
         } catch (WebDriverException e) {
             e.printStackTrace();
             log(e.getMessage());
