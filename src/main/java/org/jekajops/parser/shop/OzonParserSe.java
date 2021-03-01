@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.jekajops.app.cnfg.AppConfig.loger;
-
 public class OzonParserSe implements ShopParser {
     private static final String URL = "https://www.ozon.ru/search/?from_global=true&page=%d&text=%s";
     private WebDriver webDriver;

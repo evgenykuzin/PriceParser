@@ -1,13 +1,20 @@
 package org.jekajops.app.cnfg;
 
+import net.lightbody.bmp.BrowserMobProxy;
+import net.lightbody.bmp.BrowserMobProxyServer;
+import net.lightbody.bmp.client.ClientUtil;
 import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.jekajops.app.loger.Loger;
+import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Locale;
 import java.util.prefs.Preferences;
 
@@ -46,15 +53,28 @@ public class AppConfig {
                 options.setBinary(binaryPath);
             }
             options.addArguments("--enable-javascript");
-            options.addArguments("--headless");
+            //options.addArguments("--headless");
             options.addArguments("--disable-gpu");
             options.addArguments("--no-sandbox");
-            return new ChromeDriver(options);
+            options.setAcceptInsecureCerts(true);
+            //options.addArguments("user-data-dir=C:/Users/jekajops/AppData/Local/Google/Chrome/User Data");
+            //options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+            BrowserMobProxy proxy = setUpProxy();
+            options.setProxy(ClientUtil.createSeleniumProxy(proxy));
+            var webDriver = new ChromeDriver(options);
+            return webDriver;
         } catch (Throwable t) {
             t.printStackTrace();
             log(t.getMessage());
         }
         return null;
+    }
+
+    private static BrowserMobProxy setUpProxy() {
+        BrowserMobProxyServer proxy = new BrowserMobProxyServer();
+        proxy.addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36");
+        proxy.start(0);
+        return proxy;
     }
 
     public static String getOS() {
