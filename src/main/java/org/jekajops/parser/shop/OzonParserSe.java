@@ -69,6 +69,10 @@ public class OzonParserSe implements ShopParser {
     }
 
     private List<WebElement> getProductsElements(int page, String key) throws IOException, InterruptedException {
+        webDriver.get("https://193.232.37.91/");
+        Thread.sleep(new Random().nextInt(1000));
+        webDriver.get("https://www.ozon.ru/");
+        Thread.sleep(new Random().nextInt(1000));
         search(page, key);
         List<WebElement> result = new ArrayList<>();
         try {
@@ -77,6 +81,7 @@ public class OzonParserSe implements ShopParser {
                     .findElements(By.xpath("//div[@class='widget-search-result-container ao3']"));
             if (widgetSearchResultContainer.isEmpty()) {
                 log("Error: No class: widget-search-result-container");
+                log(webDriver.getCurrentUrl());
                 log(webDriver.getPageSource());
                 return result;
             }
