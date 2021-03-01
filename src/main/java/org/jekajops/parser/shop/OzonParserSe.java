@@ -61,6 +61,7 @@ public class OzonParserSe implements ShopParser {
 
     private List<WebElement> getProductsElements(int page, String key) throws IOException {
         search(page, key);
+        log(webDriver.getPageSource());
         List<WebElement> result = new ArrayList<>();
         try {
             var widgetSearchResultContainer = webDriver
@@ -103,9 +104,13 @@ public class OzonParserSe implements ShopParser {
         if (webDriver != null) webDriver.quit();
     }
 
+//    private void log(String msg) {
+//        loger.log(getClass().getName(), msg);
+//    }
+
     private void log(String msg) {
-        loger.log(getClass().getName(), msg);
-    }
+        System.out.println("msg = " + msg);
+   }
 
     @Override
     protected void finalize() throws Throwable {
