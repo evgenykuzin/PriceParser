@@ -40,7 +40,7 @@ public class Worker implements Runnable {
             productsQueue.addAll(new HashSet<>(productsList));
             var colsSet = new LinkedHashSet<>(maps.values().iterator().next().keySet());
             var colNames = colsSet.toArray(String[]::new);
-            System.out.println("colNames = " + Arrays.toString(colNames));
+            log("colNames = " + Arrays.toString(colNames));
             while (!productsQueue.isEmpty()) {
                 //executorService.execute(() -> {
                 var product = productsQueue.poll();
@@ -49,7 +49,6 @@ public class Worker implements Runnable {
                 if (searchKey.contains("OZN")) {
                     searchKey = XmarketParser.parseBarcode(product.getArticle());
                 }
-                System.out.println("searchKey = " + searchKey);
                 if (searchKey == null) continue;
                 var actualPrice = product.getPrice();
                 log("product: "+product.toString());

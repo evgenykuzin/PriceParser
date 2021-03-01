@@ -26,19 +26,19 @@ public class OzonParserSe implements ShopParser {
             int page = 1;
             List<WebElement> elements;
             while (!(elements = getProductsElements(page, key)).isEmpty()) {
-                System.out.println("elements = " + elements);
+                log("elements = " + elements);
                 Thread.sleep(12345);
                 for (WebElement element : elements) {
                     var name = element
                             .findElement(By.xpath(".//a[@class='a2g0 tile-hover-target']"))
                             .getText();
-                    System.out.println("name = " + name);
+                    log("name = " + name);
                     var price = element
                             .findElement(By.xpath(".//div[@class='b5v4 a5d2 item']"))
                             .findElement(By.tagName("span"))
                             .getText()
                             .replaceAll("\\D", "");
-                    System.out.println("price = " + price);
+                    log("price = " + price);
                     products.add(new OzonProduct(0, Double.parseDouble(price), name, key, null));
                 }
                 if (page > 10) break;
@@ -71,10 +71,14 @@ public class OzonParserSe implements ShopParser {
         try {
             var widgetSearchResultContainer = webDriver
                     .findElements(By.xpath("//div[@class='widget-search-result-container ao3']"));
-            if (widgetSearchResultContainer.isEmpty()) return result;
+            if (widgetSearchResultContainer.isEmpty()) {
+                log("Error: No class: widget-search-result-container");
+                return result;
+            }
             result = widgetSearchResultContainer
                     .get(0)
                     .findElements(By.xpath(".//div[@class='a0c6 a0c9 a0c8']"));
+            if (result.isEmpty()) log("Error: No class: a0c6 a0c9 a0c8\nWebElements is empty");
         } catch (NoSuchElementException e) {
             e.printStackTrace();
             log(e.getMessage());

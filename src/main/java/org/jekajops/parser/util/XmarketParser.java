@@ -32,7 +32,6 @@ public class XmarketParser {
             return null;
         }
         String href = searchResult.get(0).attr("href");
-        System.out.println("href = " + href);
         String barcode = null;
         int i = 0;
         while (barcode == null) {
@@ -44,12 +43,10 @@ public class XmarketParser {
                         .getElementsByTag("dl").get(0)
                         .getElementsByTag("dd").get(1)
                         .text();
-                System.out.println("!!!!!!!!!!!!!!!!!!");
-
             } catch (IndexOutOfBoundsException e) {
                 i++;
                 if (i == 5) {
-                    System.out.println(i + " retries fail");
+                    System.out.println("Elements not found in xmarket");
                     return null;
                 }
             }
