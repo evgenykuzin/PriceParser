@@ -46,7 +46,7 @@ public class AppConfig {
                 options.setBinary(binaryPath);
             }
             options.addArguments("--enable-javascript");
-            //options.addArguments("--headless");
+            options.addArguments("--headless");
             options.addArguments("--disable-gpu");
             options.addArguments("--no-sandbox");
             return new ChromeDriver(options);
