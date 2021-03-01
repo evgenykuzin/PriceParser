@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.jekajops.app.cnfg.AppConfig.loger;
+import static org.jekajops.app.cnfg.AppConfig.logger;
 
 public class OzonParserSe implements ShopParser {
     private static final String URL = "https://www.ozon.ru/search/?from_global=true&page=%d&text=%s";
@@ -61,7 +61,6 @@ public class OzonParserSe implements ShopParser {
 
     private List<WebElement> getProductsElements(int page, String key) throws IOException {
         search(page, key);
-        log(webDriver.getPageSource());
         List<WebElement> result = new ArrayList<>();
         try {
             var widgetSearchResultContainer = webDriver
@@ -70,7 +69,6 @@ public class OzonParserSe implements ShopParser {
             result = widgetSearchResultContainer
                     .get(0)
                     .findElements(By.xpath(".//div[@class='a0c6 a0c9 a0c8']"));
-            System.out.println("result = " + result);
         } catch (NoSuchElementException e) {
             e.printStackTrace();
             log(e.getMessage());
@@ -85,7 +83,6 @@ public class OzonParserSe implements ShopParser {
 
     public void initWebDriver() {
         webDriver = AppConfig.getWebDriver();
-        System.out.println("webDriver = " + webDriver);
     }
 
     protected WebElement findElementByXpath(String xpath) {
@@ -105,7 +102,7 @@ public class OzonParserSe implements ShopParser {
     }
 
     private void log(String msg) {
-        loger.log(getClass().getName(), msg);
+        logger.log(getClass().getName(), msg);
     }
 
     @Override

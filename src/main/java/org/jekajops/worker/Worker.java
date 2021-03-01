@@ -10,10 +10,8 @@ import org.jekajops.parser.util.XmarketParser;
 
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import static org.jekajops.app.cnfg.AppConfig.loger;
+import static org.jekajops.app.cnfg.AppConfig.logger;
 
 public class Worker implements Runnable {
     private ShopParser shopParser;
@@ -27,7 +25,7 @@ public class Worker implements Runnable {
     }
 
     private void log(String msg){
-        loger.log(this.getClass().getName(), msg);
+        logger.log(this.getClass().getName(), msg);
     }
 
     public void runTask(){

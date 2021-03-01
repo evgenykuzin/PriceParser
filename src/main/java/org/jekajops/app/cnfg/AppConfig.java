@@ -4,7 +4,7 @@ import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.client.ClientUtil;
 import org.apache.commons.exec.environment.EnvironmentUtils;
-import org.jekajops.app.loger.Loger;
+import org.jekajops.app.loger.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -18,14 +18,14 @@ public class AppConfig {
     public static final Preferences preferences = Preferences.userRoot();
     public static final String NEW_PRICE_COL_NAME = "Проценка";
     public static final String DIFF_PRICES_COL_NAME = "Разница с проценкой";
-    public static Loger loger;
+    public static Logger logger;
 
     public static String getExelPath() {
         return preferences.get(EXEL_PATH_KEY, "");
     }
 
-    public static void setLoger(Loger Loger1) {
-        loger = Loger1;
+    public static void setLogger(Logger Logger1) {
+        logger = Logger1;
     }
 
     public static WebDriver getWebDriver() {
@@ -77,7 +77,7 @@ public class AppConfig {
     }
 
     private static void log(String msg) {
-        if (loger != null) loger.log("AppConfig", msg);
+        if (logger != null) logger.log("AppConfig", msg);
     }
 
 }

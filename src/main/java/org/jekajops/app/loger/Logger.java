@@ -1,6 +1,6 @@
 package org.jekajops.app.loger;
 
-public interface Loger {
+public interface Logger {
 
      void log(String from, String msg);
 

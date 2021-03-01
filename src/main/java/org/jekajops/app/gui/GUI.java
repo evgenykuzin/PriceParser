@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 import static java.awt.BorderLayout.*;
-import static org.jekajops.app.cnfg.AppConfig.loger;
+import static org.jekajops.app.cnfg.AppConfig.logger;
 
 public class GUI {
     private JFrame frame;
@@ -67,7 +67,7 @@ public class GUI {
     }
 
     private static void log(String from, String msg) {
-        loger.log(from, msg);
+        logger.log(from, msg);
     }
 
     private static void log(String msg) {

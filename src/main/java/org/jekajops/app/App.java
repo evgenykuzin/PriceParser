@@ -1,19 +1,18 @@
 package org.jekajops.app;
 
-import com.jcabi.log.VerboseRunnable;
 import org.jekajops.app.cnfg.AppConfig;
-import org.jekajops.app.loger.BasicLoger;
+import org.jekajops.app.loger.BasicLogger;
 import org.jekajops.worker.Worker;
 
 import java.util.concurrent.*;
 
-import static org.jekajops.app.cnfg.AppConfig.loger;
+import static org.jekajops.app.cnfg.AppConfig.logger;
 
 public class App {
     public static void main(String[] args) {
-        AppConfig.setLoger(new BasicLoger());
+        AppConfig.setLogger(new BasicLogger());
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
-        loger.log("run");
+        logger.log("run");
         while (true) {
             new Worker().runTask();
         }

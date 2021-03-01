@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.jekajops.app.cnfg.AppConfig.loger;
+import static org.jekajops.app.cnfg.AppConfig.logger;
 
 public abstract class CsvManager implements DataManager {
     private String filename;
@@ -66,7 +66,7 @@ public abstract class CsvManager implements DataManager {
     }
 
     private void log(String msg) {
-        loger.log(msg);
+        logger.log(msg);
     }
 
     private List<String[]> read() {

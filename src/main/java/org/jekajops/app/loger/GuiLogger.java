@@ -2,7 +2,7 @@ package org.jekajops.app.loger;
 
 import static org.jekajops.app.gui.GUI.LOG_COMPONENT;
 
-public class GuiLoger implements Loger {
+public class GuiLogger implements Logger {
 
     @Override
     public void log(String from, String msg) {
