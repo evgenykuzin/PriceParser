@@ -43,6 +43,7 @@ public class OzonParserSe implements ShopParser {
                 }
                 if (page > 10) break;
                 page++;
+                break;
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
