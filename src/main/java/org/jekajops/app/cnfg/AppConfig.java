@@ -45,8 +45,7 @@ public class AppConfig {
             if (getOS().contains("win")) {
                 System.setProperty("webdriver.chrome.driver", FileManager.getFromResources("chromedriver.exe").getAbsolutePath());
             } else {
-                //options.setBinary("/app/.apt/usr/bin/google-chrome");
-                System.setProperty("webdriver.chrome.driver", EnvironmentUtils.getProcEnvironment().get("CHROMEDRIVER_PATH"));
+                //System.setProperty("webdriver.chrome.driver", EnvironmentUtils.getProcEnvironment().get("CHROMEDRIVER_PATH"));
                 String binaryPath = null;
                 try {
                     binaryPath = EnvironmentUtils.getProcEnvironment().get("GOOGLE_CHROME_SHIM");
@@ -63,16 +62,11 @@ public class AppConfig {
             options.addArguments("--disable-gpu");
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
-
             options.setAcceptInsecureCerts(true);
-            //var chromeUserDataPath = FileManager.getFromResources("User Data\\Profile 1");
-            //System.out.println("chromeUserDataPath = " + chromeUserDataPath);
-            //options.addArguments(String.format("user-data-dir=%s", "C:\\Users\\JekaJops\\AppData\\Local\\Google\\Chrome\\User Data\\"));
             options.addArguments(String.format("user-data-dir=%s", FileManager.getFromResources("User Data").getAbsolutePath()));
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
             BrowserMobProxy proxy = setUpProxy();
             options.setProxy(ClientUtil.createSeleniumProxy(proxy));
-            //options.addExtensions(FileManager.getFromResources("anticaptcha-plugin_v0.52.crx"));
             options.addExtensions(FileManager.getFromResources("anticaptcha-plugin_v0.52.crx"));
             options.merge(capabilities);
             var webDriver = new ChromeDriver(options);
