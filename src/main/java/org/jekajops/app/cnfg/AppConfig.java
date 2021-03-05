@@ -56,8 +56,10 @@ public class AppConfig {
             }
             options.addArguments("--enable-javascript");
             //options.addArguments("--headless");
-            //options.addArguments("--disable-gpu");
-            //options.addArguments("--no-sandbox");
+            options.addArguments("--disable-gpu");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+
             options.setAcceptInsecureCerts(true);
             //var chromeUserDataPath = FileManager.getFromResources("User Data\\Profile 1");
             //System.out.println("chromeUserDataPath = " + chromeUserDataPath);
