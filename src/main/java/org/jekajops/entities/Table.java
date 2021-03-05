@@ -20,7 +20,6 @@ public class Table extends HashMap<String, Table.Raw> {
     public Table(String idKeyName, List<Object> keys, Collection<List<Object>> collections, Consumer<Raw> beforeRawFiller, Consumer<Raw> afterRawFiller) {
         this.idKeyName = idKeyName;
         this.keys = keys.stream().map(Object::toString).collect(toList());
-        System.out.println("keys = " + keys);
         var rawMap = new HashMap<String, Raw>();
         collections.stream()
                 .map(objects -> {
@@ -40,7 +39,6 @@ public class Table extends HashMap<String, Table.Raw> {
     public Table(String idKeyName, List<Object> keys, List<Raw> collection) {
         this.idKeyName = idKeyName;
         this.keys = keys.stream().map(Object::toString).collect(toList());
-        System.out.println("keys2 = " + keys);
         collection.forEach(raw -> put(raw.get(idKeyName), raw));
     }
 

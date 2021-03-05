@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.jekajops.app.cnfg.AppConfig.logger;
 import static org.openqa.selenium.support.ui.ExpectedConditions.*;

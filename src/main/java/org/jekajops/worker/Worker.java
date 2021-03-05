@@ -24,8 +24,6 @@ public class Worker implements Runnable {
         runTask();
     }
 
-
-
     public void runTask() {
         ShopParser shopParser = null;
         try {
