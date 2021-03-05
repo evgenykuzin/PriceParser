@@ -11,7 +11,9 @@ import org.jekajops.util.FileManager;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -37,13 +39,14 @@ public class AppConfig {
 
     public static WebDriver getWebDriver() {
         try {
-//        System.setProperty("GOOGLE_CHROME_BIN", "/app/.apt/usr/bin/google-chrome");
-//        System.setProperty("CHROMEDRIVER_PATH", "/app/.chromedriver/bin/chromedriver");
+        System.setProperty("GOOGLE_CHROME_BIN", "/app/.apt/usr/bin/google-chrome");
+        System.setProperty("CHROMEDRIVER_PATH", "/app/.chromedriver/bin/chromedriver");
             ChromeOptions options = new ChromeOptions();
             if (getOS().contains("win")) {
                 System.setProperty("webdriver.chrome.driver", FileManager.getFromResources("chromedriver.exe").getAbsolutePath());
             } else {
                 //options.setBinary("/app/.apt/usr/bin/google-chrome");
+                System.setProperty("webdriver.chrome.driver", EnvironmentUtils.getProcEnvironment().get("CHROMEDRIVER_PATH"));
                 String binaryPath = null;
                 try {
                     binaryPath = EnvironmentUtils.getProcEnvironment().get("GOOGLE_CHROME_SHIM");
@@ -54,6 +57,7 @@ public class AppConfig {
                 log("Webdriver Binary Path: " + binaryPath);
                 options.setBinary(binaryPath);
             }
+            DesiredCapabilities capabilities = DesiredCapabilities.chrome();
             options.addArguments("--enable-javascript");
             //options.addArguments("--headless");
             options.addArguments("--disable-gpu");
@@ -70,6 +74,7 @@ public class AppConfig {
             options.setProxy(ClientUtil.createSeleniumProxy(proxy));
             //options.addExtensions(FileManager.getFromResources("anticaptcha-plugin_v0.52.crx"));
             options.addExtensions(FileManager.getFromResources("anticaptcha-plugin_v0.52.crx"));
+            options.merge(capabilities);
             var webDriver = new ChromeDriver(options);
             return webDriver;
         } catch (Throwable t) {
