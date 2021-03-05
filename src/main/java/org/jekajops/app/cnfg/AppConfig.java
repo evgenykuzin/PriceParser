@@ -4,7 +4,11 @@ import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.client.ClientUtil;
 import org.apache.commons.exec.environment.EnvironmentUtils;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.jekajops.app.loger.Logger;
+import org.jekajops.util.FileManager;
+import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -14,10 +18,13 @@ import java.util.Locale;
 import java.util.prefs.Preferences;
 
 public class AppConfig {
-    public static final String EXEL_PATH_KEY = "EXEL_PATH";
     public static final Preferences preferences = Preferences.userRoot();
-    public static final String NEW_PRICE_COL_NAME = "Проценка";
-    public static final String DIFF_PRICES_COL_NAME = "Разница с проценкой";
+    public static final String EXEL_PATH_KEY = "EXEL_PATH";
+
+    public static final String AWS_ACCESS_KEY_ID = "AKIAIGEJPB3F4UUDYMOA";
+    public static final String AWS_SECRET_ACCESS_KEY = "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\\n";
+    public static final String AWS_PASS = "Ktoyatakoy21!";
+
     public static Logger logger;
 
     public static String getExelPath() {
@@ -34,7 +41,7 @@ public class AppConfig {
 //        System.setProperty("CHROMEDRIVER_PATH", "/app/.chromedriver/bin/chromedriver");
             ChromeOptions options = new ChromeOptions();
             if (getOS().contains("win")) {
-                System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/src/main/resources/chromedriver.exe");
+                System.setProperty("webdriver.chrome.driver", FileManager.getFromResources("chromedriver.exe").getAbsolutePath());
             } else {
                 //options.setBinary("/app/.apt/usr/bin/google-chrome");
                 String binaryPath = null;
@@ -49,13 +56,18 @@ public class AppConfig {
             }
             options.addArguments("--enable-javascript");
             //options.addArguments("--headless");
-            options.addArguments("--disable-gpu");
-            options.addArguments("--no-sandbox");
+            //options.addArguments("--disable-gpu");
+            //options.addArguments("--no-sandbox");
             options.setAcceptInsecureCerts(true);
-            //options.addArguments("user-data-dir=C:/Users/jekajops/AppData/Local/Google/Chrome/User Data");
-            //options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+            //var chromeUserDataPath = FileManager.getFromResources("User Data\\Profile 1");
+            //System.out.println("chromeUserDataPath = " + chromeUserDataPath);
+            //options.addArguments(String.format("user-data-dir=%s", "C:\\Users\\JekaJops\\AppData\\Local\\Google\\Chrome\\User Data\\"));
+            options.addArguments(String.format("user-data-dir=%s", FileManager.getFromResources("User Data").getAbsolutePath()));
+            options.setPageLoadStrategy(PageLoadStrategy.EAGER);
             BrowserMobProxy proxy = setUpProxy();
             options.setProxy(ClientUtil.createSeleniumProxy(proxy));
+            //options.addExtensions(FileManager.getFromResources("anticaptcha-plugin_v0.52.crx"));
+            options.addExtensions(FileManager.getFromResources("anticaptcha-plugin_v0.52.crx"));
             var webDriver = new ChromeDriver(options);
             return webDriver;
         } catch (Throwable t) {
@@ -67,7 +79,9 @@ public class AppConfig {
 
     private static BrowserMobProxy setUpProxy() {
         BrowserMobProxyServer proxy = new BrowserMobProxyServer();
-        proxy.addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36");
+        //proxy.addHeader("User-Agent", "Chrome/87.0.4280.88");
+        proxy.addHeader("User-Agent", "AdsBot-Google (+http://www.google.com/adsbot.html)");
+        //proxy.setRequestTimeout(1000, TimeUnit.MILLISECONDS);
         proxy.start(0);
         return proxy;
     }
@@ -78,6 +92,18 @@ public class AppConfig {
 
     private static void log(String msg) {
         if (logger != null) logger.log("AppConfig", msg);
+    }
+
+    public static void main(String[] args) throws IOException {
+        System.out.printf("docker run -e COMMANDER_PASSWORD='%s' \\\n" +
+                "    -e PROVIDERS_AWSEC2_ACCESSKEYID='%s' \\\n" +
+                "    -e PROVIDERS_AWSEC2_SECRETACCESSKEY='%s' \\\n" +
+                "    -it -p 8888:8888 -p 8889:8889 fabienvauchelles/scrapoxy\n",
+                AWS_PASS, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY);
+        var c = HttpClientBuilder.create().build();
+        var req = RequestBuilder.get("http://localhost:8889/api/instances").build();
+        var res = c.execute(req);
+        System.out.println("res = " + res);
     }
 
 }

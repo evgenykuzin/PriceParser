@@ -12,7 +12,6 @@ public interface ShopParser {
         products.add(actualPriceProduct);
         return products
                 .stream()
-                .filter(product -> product.getName().contains(actualPriceProduct.getName()))
                 .min(Comparator.comparingDouble(Product::getPrice))
                 .orElse(actualPriceProduct);
     }

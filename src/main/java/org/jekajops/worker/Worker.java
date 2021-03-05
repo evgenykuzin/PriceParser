@@ -1,7 +1,9 @@
 package org.jekajops.worker;
 
-import org.jekajops.app.cnfg.AppConfig;
+import org.jekajops.entities.OzonProduct;
 import org.jekajops.entities.Product;
+import org.jekajops.entities.Table;
+import org.jekajops.integrate.ozon.OzonManager;
 import org.jekajops.parser.exel.DataManager;
 import org.jekajops.parser.exel.DataManagerFactory;
 import org.jekajops.parser.shop.OzonParserSe;
@@ -10,49 +12,53 @@ import org.jekajops.parser.util.XmarketParser;
 
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.stream.Collectors;
 
 import static org.jekajops.app.cnfg.AppConfig.logger;
+import static org.jekajops.app.cnfg.TableConfig.*;
+import static org.jekajops.app.cnfg.TableConfig.OzonConfig.*;
 
 public class Worker implements Runnable {
-    private ShopParser shopParser;
-
-    public Worker() {
-    }
-
     @Override
     public void run() {
         runTask();
     }
 
-    private void log(String msg){
-        logger.log(this.getClass().getName(), msg);
-    }
 
-    public void runTask(){
+
+    public void runTask() {
+        ShopParser shopParser = null;
         try {
             //ExecutorService executorService = Executors.newCachedThreadPool();
-            DataManager dataManager = DataManagerFactory.getOzonCsvManager(AppConfig.getExelPath());
-            dataManager = DataManagerFactory.getOzonWebCsvManager();
-            ShopParser shopParser = new OzonParserSe();
-            var maps = dataManager.parseMaps();
-            var productsList = dataManager.parseProducts(maps.values());
+            DataManager dataManager = DataManagerFactory.getOzonWebCsvManager();
+            Table table = dataManager.parseTable();
+            try {
+                table = getUpdatedOzonTable(table);
+            } catch (Throwable t) {
+               t.printStackTrace();
+            }
+            var productsList = dataManager.parseProducts(table.values());
             var productsQueue = new ArrayBlockingQueue<Product>(productsList.size());
             Collections.shuffle(productsList);
             productsQueue.addAll(productsList);
-            var colsSet = new LinkedHashSet<>(maps.values().iterator().next().keySet());
-            var colNames = colsSet.toArray(String[]::new);
-            log("colNames = " + Arrays.toString(colNames));
+            shopParser = new OzonParserSe();
             while (!productsQueue.isEmpty()) {
                 //executorService.execute(() -> {
                 var product = productsQueue.poll();
                 var searchKey = product.getBarcode();
-                Thread.sleep(30*1000+new Random().nextInt(60*1000));
+                var searchBarcode = ((OzonProduct) product).getSearchBarcode();
                 if (searchKey.contains("OZN")) {
-                    searchKey = XmarketParser.parseBarcode(product.getArticle());
+                    if (searchBarcode != null && !searchBarcode.isEmpty()) {
+                        searchKey = searchBarcode;
+                    } else {
+                        searchKey = XmarketParser.parseBarcode(product.getArticle());
+                        if (searchKey != null) searchBarcode = searchKey;
+                    }
                 }
                 if (searchKey == null) continue;
+                Thread.sleep(1000 + new Random().nextInt(3 * 1000));
                 var actualPrice = product.getPrice();
-                log("product: "+product.toString());
+                log("product: " + product.toString());
                 var parsedProducts = shopParser.parseProducts(searchKey);
                 if (parsedProducts.isEmpty()) {
                     log("no products was found");
@@ -65,20 +71,53 @@ public class Worker implements Runnable {
                     log("lowerPrice = " + lowerPrice);
                 }
                 var mapKey = String.valueOf(product.getId());
-                var map = maps.get(mapKey);
-                map.put(AppConfig.NEW_PRICE_COL_NAME, String.valueOf(lowerPriceProduct.getPrice()));
-                var diff = lowerPriceProduct.getPrice() - actualPrice;
-                map.put(AppConfig.DIFF_PRICES_COL_NAME, String.valueOf(diff));
-                maps.put(mapKey, map);
+                var map = table.get(mapKey);
+                var diff = lowerPrice - actualPrice;
+                var href = lowerPriceProduct.getHref();
+                if (href == null || href.isEmpty()) href = map.get(HREF_COL_NAME);
+                map.put(LOWER_PRICE_COL_NAME, String.valueOf(lowerPrice));
+                map.put(DIFF_PRICES_COL_NAME, String.valueOf(diff));
+                map.put(HREF_COL_NAME, href);
+                map.put(SEARCH_BARCODE_COL_NAME, searchBarcode);
+                table.put(mapKey, map);
                 log("Updated!");
-                dataManager.writeAll(maps.values(), colNames);
+                dataManager.writeAll(table);
+
                 //});
             }
         } catch (Throwable e) {
             e.printStackTrace();
-            log(e.getMessage());
+            log(String.valueOf(e));
         } finally {
-            shopParser.quit();
+            if (shopParser != null) {
+                shopParser.quit();
+            }
         }
     }
+
+    public static Table getUpdatedOzonTable(Table table) throws Throwable {
+        var ozonManager = new OzonManager();
+        var actualPricesProductsMap = ozonManager.getActualPricesProducts().stream().map(product -> (OzonProduct) product).collect(Collectors.toMap(OzonProduct::getOzonProductId, product -> product));
+        var keys = actualPricesProductsMap.keySet();
+        var mapsWithAnotherKey = new Table(OZON_PRODUCT_ID, new ArrayList<>(table.getKeys()), new ArrayList<>(table.values()));
+        keys.forEach(key -> {
+            var currentPriceMap = mapsWithAnotherKey.get(key);
+            if (currentPriceMap != null) {
+                var updatedPriceProduct = actualPricesProductsMap.get(key);
+                var updatedPrice = String.valueOf(updatedPriceProduct.getPrice());
+                if (!currentPriceMap.get(PRICE_COL_NAME).equals(updatedPrice)) {
+                    logger.log(Worker.class.toString(), "was = " + currentPriceMap.get(PRICE_COL_NAME) + " & updatedPrice = " + updatedPrice);
+                }
+                currentPriceMap.put(PRICE_COL_NAME, updatedPrice);
+                mapsWithAnotherKey.put(key, currentPriceMap);
+            }
+
+        });
+        return new Table(ID_COL_NAME, new ArrayList<>(table.getKeys()), new ArrayList<>(mapsWithAnotherKey.values()));
+    }
+
+    protected void log(String msg) {
+        logger.log(this.getClass().getName(), msg);
+    }
+
 }

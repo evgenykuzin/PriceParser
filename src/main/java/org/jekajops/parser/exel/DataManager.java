@@ -1,15 +1,16 @@
 package org.jekajops.parser.exel;
 
 import org.jekajops.entities.Product;
+import org.jekajops.entities.Table;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public interface DataManager {
-    Map<String, Map<String, String>> parseMaps();
 
-    void writeAll(Collection<Map<String, String>> maps, String[] colNames);
+    Table parseTable();
 
-    List<Product> parseProducts(Collection<Map<String, String>> maps);
+    void writeAll(Table table);
+
+    List<Product> parseProducts(Collection<Table.Raw> maps);
+
 }

@@ -1,9 +1,10 @@
 package org.jekajops.entities;
 
 public interface Product {
-    int getId();
-    double getPrice();
+    Integer getId();
+    Double getPrice();
     String getName();
     String getBarcode();
     String getArticle();
+    String getHref();
 }

@@ -4,49 +4,58 @@ import org.jekajops.app.cnfg.AppConfig;
 import org.jekajops.entities.OzonProduct;
 import org.jekajops.entities.Product;
 import org.openqa.selenium.*;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.jekajops.app.cnfg.AppConfig.logger;
+import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
 public class OzonParserSe implements ShopParser {
-    private static final String URL = "https://www.ozon.ru/search/?from_global=true&page=%d&text=%s";
+    private static final String URL = "https://www.ozon.ru/category/tovary-dlya-vzroslyh-9000/?page=%d&text=%s";
     private WebDriver webDriver;
-
+    private WebDriverWait wait;
     public OzonParserSe() {
         initWebDriver();
+        wait = new WebDriverWait(webDriver, 54321);
+        try {
+            webDriver.get("https://www.ozon.ru/");
+            wait.until(webDriver -> !webDriver.getPageSource().contains("ROBOTS"));
+        } catch (Throwable e) {e.printStackTrace();}
     }
 
     @Override
-    public List<Product> parseProducts(String key) {
+    public List<Product> parseProducts(String barcode) {
         var products = new ArrayList<Product>();
+        if (barcode == null || barcode.isEmpty()) {
+            log("Empty barcode search key!");
+            return products;
+        }
         try {
             int page = 1;
             List<WebElement> elements;
-            while (!(elements = getProductsElements(page, key)).isEmpty()) {
+            while (!(elements = getProductsElements(page, barcode)).isEmpty()) {
                 log("elements = " + elements);
-                Thread.sleep(30*1000+new Random().nextInt(60*1000));
                 for (WebElement element : elements) {
-                    Thread.sleep(new Random().nextInt(1000));
-                    var name = element
-                            .findElement(By.xpath(".//a[@class='a2g0 tile-hover-target']"))
-                            .getText();
-                    log("name = " + name);
-                    Thread.sleep(new Random().nextInt(1000));
+                    var nameElement = element
+                            .findElement(By.xpath(".//a[@class='a2g0 tile-hover-target']"));
+                    log("name = " + nameElement.getText());
+                    var href = nameElement.getAttribute("href");
                     var price = element
                             .findElement(By.xpath(".//div[@class='b5v4 a5d2 item']"))
                             .findElement(By.tagName("span"))
                             .getText()
                             .replaceAll("\\D", "");
                     log("price = " + price);
-                    products.add(new OzonProduct(0, Double.parseDouble(price), name, key, null));
+                    products.add(new OzonProduct(0, Double.parseDouble(price), nameElement.getText(), barcode, null, href, null, barcode));
                 }
                 if (page > 10) break;
                 page++;
-                break;
+                Thread.sleep(1000+new Random().nextInt(1000));
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -60,7 +69,7 @@ public class OzonParserSe implements ShopParser {
             var url = getUrl(page, key);
             webDriver.get(url);
             if (!webDriver.getCurrentUrl().equals(url)) {
-                log("Error: " + webDriver.getCurrentUrl() + " != " + url);
+                log("Warning: " + webDriver.getCurrentUrl() + " != " + url);
             }
         } catch (WebDriverException e) {
             e.printStackTrace();
@@ -69,23 +78,18 @@ public class OzonParserSe implements ShopParser {
     }
 
     private List<WebElement> getProductsElements(int page, String key) throws IOException, InterruptedException {
-        webDriver.get("https://193.232.37.91/");
-        Thread.sleep(new Random().nextInt(1000));
-        webDriver.get("https://www.ozon.ru/");
-        Thread.sleep(new Random().nextInt(1000));
+        wait.until(webDriver -> !webDriver.getPageSource().contains("ROBOTS"));
         search(page, key);
+        var bySearch = By.xpath("//div[@class='widget-search-result-container ao3']");
         List<WebElement> result = new ArrayList<>();
         try {
-            Thread.sleep(new Random().nextInt(1000));
             var widgetSearchResultContainer = webDriver
-                    .findElements(By.xpath("//div[@class='widget-search-result-container ao3']"));
+                    .findElements(bySearch);
             if (widgetSearchResultContainer.isEmpty()) {
                 log("Error: No class: widget-search-result-container");
-                log(webDriver.getCurrentUrl());
-                log(webDriver.getPageSource());
                 return result;
             }
-            Thread.sleep(new Random().nextInt(1000));
+            Thread.sleep(new Random().nextInt(100));
             result = widgetSearchResultContainer
                     .get(0)
                     .findElements(By.xpath(".//div[@class='a0c6 a0c9 a0c8']"));
@@ -98,7 +102,7 @@ public class OzonParserSe implements ShopParser {
     }
 
     private static String getUrl(int page, String key) {
-        System.out.println("page = " + String.format(URL, page, key));
+        System.out.println("page URL = " + String.format(URL, page, key));
         return String.format(URL, page, key);
     }
 

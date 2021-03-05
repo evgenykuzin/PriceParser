@@ -1,0 +1,61 @@
+{
+   "checksum": "0adbb43e8f6cce96b64a4499340d6044",
+   "roots": {
+      "bookmark_bar": {
+         "children": [ {
+            "date_added": "13259182915003409",
+            "guid": "404b1137-74e0-4abf-a6f5-e70991167e40",
+            "id": "5",
+            "name": "Gmail",
+            "type": "url",
+            "url": "https://accounts.google.com/b/0/AddMailService"
+         }, {
+            "date_added": "13259182915004658",
+            "guid": "75528def-1566-47d0-a61c-3d2ebfb79448",
+            "id": "6",
+            "name": "YouTube",
+            "type": "url",
+            "url": "https://youtube.com/"
+         }, {
+            "date_added": "13259182915008164",
+            "guid": "d5859d87-5065-4ee0-aa3c-1ab6ba91bfa4",
+            "id": "7",
+            "name": "Карты",
+            "type": "url",
+            "url": "https://maps.google.com/"
+         }, {
+            "date_added": "13259182919969355",
+            "guid": "f54f89d6-393c-4689-9bad-522c809055aa",
+            "id": "9",
+            "name": "Перевести",
+            "type": "url",
+            "url": "https://translate.google.com/"
+         } ],
+         "date_added": "13259182911502121",
+         "date_modified": "13259182919969355",
+         "guid": "00000000-0000-4000-a000-000000000002",
+         "id": "1",
+         "name": "Панель закладок",
+         "type": "folder"
+      },
+      "other": {
+         "children": [  ],
+         "date_added": "13259182911502125",
+         "date_modified": "0",
+         "guid": "00000000-0000-4000-a000-000000000003",
+         "id": "2",
+         "name": "Другие закладки",
+         "type": "folder"
+      },
+      "synced": {
+         "children": [  ],
+         "date_added": "13259182911502129",
+         "date_modified": "0",
+         "guid": "00000000-0000-4000-a000-000000000004",
+         "id": "3",
+         "name": "Моб. закладки",
+         "type": "folder"
+      }
+   },
+   "version": 1
+}

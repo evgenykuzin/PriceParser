@@ -1,6 +1,13 @@
 package org.jekajops.parser.util;
 
+import com.opencsv.CSVParser;
 import org.jekajops.app.cnfg.AppConfig;
+import org.jekajops.entities.Table;
+import org.jekajops.parser.exel.DataManager;
+import org.jekajops.parser.exel.DataManagerFactory;
+import org.jekajops.parser.exel.WebCsvDataManager;
+import org.jekajops.util.CsvManager;
+import org.jekajops.util.FileManager;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -8,10 +15,18 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.jekajops.app.cnfg.TableConfig.*;
 
 public class XmarketParser {
 
@@ -68,6 +83,10 @@ public class XmarketParser {
                 .get();
     }
 
+    public static int parseStock(String name) {
+        return 5;
+    }
+
     public static String parseBarcode2(String name) {
         String barcode = null;
         try (CloseableWebDriverWrapper closeableWebDriverWrapper = new CloseableWebDriverWrapper()) {
@@ -108,7 +127,7 @@ public class XmarketParser {
         return barcode;
     }
 
-    static String getUrl(String url, Map<String, String> params) {
+    private static String getUrl(String url, Map<String, String> params) {
         if (params.isEmpty()) return url;
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
@@ -121,7 +140,35 @@ public class XmarketParser {
         return urlBuilder.toString();
     }
 
-    private static class CloseableWebDriverWrapper implements AutoCloseable{
+    public static void updateBarcodes(DataManager dataManager) {
+        var file = FileManager.getFromResources("trade.csv");
+        List<List<Object>> data = CsvManager.read(file.getAbsolutePath(), "windows-1251")
+                .stream()
+                .map(strings -> Arrays.asList(((Object[]) strings)))
+                .collect(Collectors.toList());
+        var keys = data.get(0);
+        data.remove(keys);
+        var tradeTable = new Table(ARTICLE_COL_NAME, keys, data);
+        var productsTable = dataManager.parseTable();
+        var products = dataManager.parseProducts(productsTable.values());
+        products.forEach(product -> {
+            var article = product.getArticle();
+            var tradeRaw = tradeTable.get(article);
+            if (tradeRaw != null) {
+                var barcode = tradeRaw.get("Штрихкод");
+                var id = String.valueOf(product.getId());
+                productsTable.updateRawValue(id, SEARCH_BARCODE_COL_NAME, barcode);
+            }
+
+        });
+        dataManager.writeAll(productsTable);
+    }
+
+    public static void main(String[] args) {
+        updateBarcodes(DataManagerFactory.getOzonWebCsvManager());
+    }
+
+    private static class CloseableWebDriverWrapper implements AutoCloseable {
         private final WebDriver webDriver;
 
         public CloseableWebDriverWrapper() {
