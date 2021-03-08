@@ -1,5 +1,6 @@
 package org.jekajops.worker;
 
+import org.jekajops.app.loger.Loggable;
 import org.jekajops.entities.OzonProduct;
 import org.jekajops.entities.Product;
 import org.jekajops.entities.Table;
@@ -15,10 +16,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Collectors;
 
 import static org.jekajops.app.cnfg.AppConfig.logger;
-import static org.jekajops.app.cnfg.TableConfig.*;
+import static org.jekajops.app.cnfg.TableConfig.WebDocConfig.*;
 import static org.jekajops.app.cnfg.TableConfig.OzonConfig.*;
 
-public class Worker implements Runnable {
+public class PriceMonitor implements Runnable, Loggable {
     @Override
     public void run() {
         runTask();
@@ -27,7 +28,6 @@ public class Worker implements Runnable {
     public void runTask() {
         ShopParser shopParser = null;
         try {
-            //ExecutorService executorService = Executors.newCachedThreadPool();
             DataManager dataManager = DataManagerFactory.getOzonWebCsvManager();
             Table table = dataManager.parseTable();
             try {
@@ -41,7 +41,6 @@ public class Worker implements Runnable {
             productsQueue.addAll(productsList);
             shopParser = new OzonParserSe();
             while (!productsQueue.isEmpty()) {
-                //executorService.execute(() -> {
                 var product = productsQueue.poll();
                 var searchKey = product.getBarcode();
                 var searchBarcode = ((OzonProduct) product).getSearchBarcode();
@@ -71,17 +70,15 @@ public class Worker implements Runnable {
                 var mapKey = String.valueOf(product.getId());
                 var map = table.get(mapKey);
                 var diff = lowerPrice - actualPrice;
-                var href = lowerPriceProduct.getHref();
-                if (href == null || href.isEmpty()) href = map.get(HREF_COL_NAME);
+                var href = ((OzonProduct) lowerPriceProduct).getConcurrentProductUrl();
+                if (href == null || href.isEmpty()) href = map.get(CONCURRENT_URL_COL_NAME);
                 map.put(LOWER_PRICE_COL_NAME, String.valueOf(lowerPrice));
                 map.put(DIFF_PRICES_COL_NAME, String.valueOf(diff));
-                map.put(HREF_COL_NAME, href);
+                map.put(CONCURRENT_URL_COL_NAME, href);
                 map.put(SEARCH_BARCODE_COL_NAME, searchBarcode);
                 table.put(mapKey, map);
                 log("Updated!");
                 dataManager.writeAll(table);
-
-                //});
             }
         } catch (Throwable e) {
             e.printStackTrace();
@@ -97,14 +94,14 @@ public class Worker implements Runnable {
         var ozonManager = new OzonManager();
         var actualPricesProductsMap = ozonManager.getActualPricesProducts().stream().map(product -> (OzonProduct) product).collect(Collectors.toMap(OzonProduct::getOzonProductId, product -> product));
         var keys = actualPricesProductsMap.keySet();
-        var mapsWithAnotherKey = new Table(OZON_PRODUCT_ID, new ArrayList<>(table.getKeys()), new ArrayList<>(table.values()));
+        var mapsWithAnotherKey = new Table(OZON_PRODUCT_ID_COL_NAME, new ArrayList<>(table.getKeys()), new ArrayList<>(table.values()));
         keys.forEach(key -> {
             var currentPriceMap = mapsWithAnotherKey.get(key);
             if (currentPriceMap != null) {
                 var updatedPriceProduct = actualPricesProductsMap.get(key);
                 var updatedPrice = String.valueOf(updatedPriceProduct.getPrice());
                 if (!currentPriceMap.get(PRICE_COL_NAME).equals(updatedPrice)) {
-                    logger.log(Worker.class.toString(), "was = " + currentPriceMap.get(PRICE_COL_NAME) + " & updatedPrice = " + updatedPrice);
+                    logger.log(PriceMonitor.class.toString(), "was = " + currentPriceMap.get(PRICE_COL_NAME) + " & updatedPrice = " + updatedPrice);
                 }
                 currentPriceMap.put(PRICE_COL_NAME, updatedPrice);
                 mapsWithAnotherKey.put(key, currentPriceMap);
@@ -112,10 +109,6 @@ public class Worker implements Runnable {
 
         });
         return new Table(ID_COL_NAME, new ArrayList<>(table.getKeys()), new ArrayList<>(mapsWithAnotherKey.values()));
-    }
-
-    protected void log(String msg) {
-        logger.log(this.getClass().getName(), msg);
     }
 
 }

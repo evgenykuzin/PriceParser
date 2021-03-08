@@ -4,16 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import lombok.AllArgsConstructor;
+import org.jekajops.app.loger.Loggable;
 import org.jekajops.entities.OzonProduct;
 import org.jekajops.entities.Product;
-import org.jekajops.http.body_builders.Body;
 import org.jekajops.http.body_builders.BodyBuilder;
 import org.jekajops.http.body_builders.JsonBodyBuilder;
 import org.jekajops.http.headers.Header;
 import org.jekajops.http.headers.HeadersModel;
 import org.jekajops.http.headers.HeadersModelImpl;
-import org.jekajops.http.models.ResponseModel;
 import org.jekajops.http.services.ClosableHttpService;
 import org.jekajops.http.services.HttpService;
 
@@ -21,7 +19,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class OzonManager {
+public class OzonManager implements Loggable {
     private static final String OZON_CLIENT_ID = "123973";
     private static final String OZON_API_KEY = "9ad71481-0513-4bd2-9b95-5845db520dec";
     private static final String OZON_API_HOST = "http://api-seller.ozon.ru";
@@ -88,6 +86,7 @@ public class OzonManager {
                             je.get("offer_id").getAsString(),
                             null,
                             je.get("product_id").getAsString(),
+                            null,
                             null
                     );
                     set.add(ozonProduct);
@@ -97,27 +96,22 @@ public class OzonManager {
         return set;
     }
 
-    public void updateProductStocks(OzonProduct ozonProduct, String warehouseId, int stock) throws IOException {
+    public void updateProductStocks(OzonProduct ozonProduct) throws IOException {
         var j = new JsonBuilder()
                 .addNewArr("stocks")
                 .addInArr(new JsonBuilder()
                         .addProperty("offer_id", ozonProduct.getArticle())
                         .addProperty("product_id", ozonProduct.getOzonProductId())
-                        .addProperty("stock", String.valueOf(stock))
-                        .addProperty("warehouse_id", warehouseId), "stocks");
+                        .addProperty("stock", String.valueOf(ozonProduct.getStock()))
+                        , "stocks");
+        var resInf = executePostRequest("/v1/products/stocks", j);
+        if (resInf.getAsJsonArray("errors").size() != 0){
 
-        System.out.println("j = " + j);
-        var resInf = executePostRequest("/v2/products/stocks", j);
-        System.out.println("res /v2/products/stocks = " + resInf);
+        }
     }
 
-    public static void main(String[] args) {
-        var m = new OzonManager();
-        var v = m.getActualPricesProducts();
-    }
-
-    class JsonBuilder {
-        private JsonObject jsonObject;
+    static class JsonBuilder {
+        private final JsonObject jsonObject;
 
         public JsonBuilder() {
             this.jsonObject = new JsonObject();
@@ -165,5 +159,4 @@ public class OzonManager {
             return jsonObject.toString();
         }
     }
-
 }

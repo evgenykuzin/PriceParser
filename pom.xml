@@ -107,6 +107,13 @@
         <mainClass>org.jekajops.app.App</mainClass>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <!--Parser-->
         <dependency>
@@ -120,10 +127,21 @@
             <version>5.0.0</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.0.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>5.3</version>
         </dependency>
+            <dependency>
+                <groupId>com.github.Cloudmersive</groupId>
+                <artifactId>Cloudmersive.APIClient.Java</artifactId>
+                <version>v3.54</version>
+            </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>

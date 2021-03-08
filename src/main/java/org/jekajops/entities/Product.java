@@ -6,5 +6,6 @@ public interface Product {
     String getName();
     String getBarcode();
     String getArticle();
-    String getHref();
+    Integer getStock();
+    void setStock(Integer stock);
 }

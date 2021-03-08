@@ -1,38 +1,25 @@
 package org.jekajops.parser.util;
 
-import com.opencsv.CSVParser;
-import org.jekajops.app.cnfg.AppConfig;
+import org.jekajops.entities.Product;
 import org.jekajops.entities.Table;
-import org.jekajops.parser.exel.DataManager;
+import org.jekajops.parser.exel.CsvDataManager;
 import org.jekajops.parser.exel.DataManagerFactory;
 import org.jekajops.parser.exel.WebCsvDataManager;
-import org.jekajops.util.CsvManager;
 import org.jekajops.util.FileManager;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import static org.jekajops.app.cnfg.TableConfig.*;
+import static org.jekajops.app.cnfg.TableConfig.WebDocConfig.*;
+import static org.jekajops.app.cnfg.TableConfig.XmarketConfig.*;
 
 public class XmarketParser {
-
     private static final String URL = "https://www.xmarket.ru/";
     private static final String URL_CAT = "catalog/";
-
 
     public static String parseBarcode(String name) throws IOException {
         System.out.println("name for searching in xmarket = " + name);
@@ -69,62 +56,60 @@ public class XmarketParser {
         return barcode;
     }
 
+    public static List<Product> parseNewStocksProducts(List<Product> products) {
+        var tradeTable = getTradeTable();
+        var resultProducts = new ArrayList<Product>();
+        products.forEach(product -> {
+            var row = tradeTable.get(product.getArticle());
+            if (row != null) {
+                var stock = row.get(STOCKS_COL_NAME);
+                if (stock != null && !stock.isEmpty()) {
+                    product.setStock(Integer.parseInt(stock));
+                    resultProducts.add(product);
+                }
+            }
+
+        });
+        return resultProducts;
+    }
+
+    public static void updateBarcodes(WebCsvDataManager dataManager) {
+        var tradeTable = getTradeTable();
+        var productsTable = dataManager.parseTable();
+        var products = dataManager.parseProducts(productsTable.values());
+        products.forEach(product -> {
+            var article = product.getArticle();
+            var tradeRaw = tradeTable.get(article);
+            if (tradeRaw != null) {
+                var barcode = tradeRaw.get(BARCODE_COL_NAME);
+                var id = String.valueOf(product.getId());
+                productsTable.updateRawValue(id, SEARCH_BARCODE_COL_NAME, barcode);
+            }
+        });
+        dataManager.writeAll(productsTable);
+    }
+
+    private static Table getTradeTable() {
+        File file = null;
+        try {
+            file = FileManager.download(
+                    "https://www.xmarket.ru/upload/clients/trade.csv",
+                    FileManager.getFromResources("trade.csv")
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        CsvDataManager csvDataManager = DataManagerFactory.getXmarketCsvManager(file);
+        return csvDataManager.parseTable();
+    }
+
     private static Document getDocument(String url) throws IOException {
-        Proxy proxy = new Proxy(
-                Proxy.Type.HTTP,
-                InetSocketAddress.createUnresolved("146.66.172.217", 8080)
-        );
         return Jsoup.connect(url)
-                //.proxy(proxy)
                 .method(Connection.Method.GET)
                 .followRedirects(false)
                 .timeout(35000)
                 .userAgent("Chrome")
                 .get();
-    }
-
-    public static int parseStock(String name) {
-        return 5;
-    }
-
-    public static String parseBarcode2(String name) {
-        String barcode = null;
-        try (CloseableWebDriverWrapper closeableWebDriverWrapper = new CloseableWebDriverWrapper()) {
-            WebDriver webDriver = closeableWebDriverWrapper.getWebDriver();
-            System.out.println("name for searching = " + name);
-            var params = new HashMap<String, String>();
-            params.put("q", name);
-            params.put("s", "");
-            String url = getUrl(URL + URL_CAT, params);
-            System.out.println("url = " + url);
-            webDriver.get(url);
-            var searchResult = webDriver
-                    .findElements(By.className("product-item-image-wrapper"));
-            if (searchResult.isEmpty()) {
-                System.out.println("searchResult is empty");
-                return null;
-            }
-            String href = searchResult.get(0).getAttribute("href");
-            int i = 0;
-            while (barcode == null) {
-                webDriver.get(href);
-                try {
-                    barcode = webDriver
-                            .findElements(By.className("product-item-detail-tab-content")).get(1)
-                            .findElements(By.tagName("dl")).get(0)
-                            .findElements(By.tagName("dd")).get(1)
-                            .getText();
-                    System.out.println("barcode = " + barcode);
-                } catch (IndexOutOfBoundsException e) {
-                    i++;
-                    Thread.sleep(5000);
-                    if (i == 10) break;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return barcode;
     }
 
     private static String getUrl(String url, Map<String, String> params) {
@@ -140,49 +125,8 @@ public class XmarketParser {
         return urlBuilder.toString();
     }
 
-    public static void updateBarcodes(DataManager dataManager) {
-        var file = FileManager.getFromResources("trade.csv");
-        List<List<Object>> data = CsvManager.read(file.getAbsolutePath(), "windows-1251")
-                .stream()
-                .map(strings -> Arrays.asList(((Object[]) strings)))
-                .collect(Collectors.toList());
-        var keys = data.get(0);
-        data.remove(keys);
-        var tradeTable = new Table(ARTICLE_COL_NAME, keys, data);
-        var productsTable = dataManager.parseTable();
-        var products = dataManager.parseProducts(productsTable.values());
-        products.forEach(product -> {
-            var article = product.getArticle();
-            var tradeRaw = tradeTable.get(article);
-            if (tradeRaw != null) {
-                var barcode = tradeRaw.get("Штрихкод");
-                var id = String.valueOf(product.getId());
-                productsTable.updateRawValue(id, SEARCH_BARCODE_COL_NAME, barcode);
-            }
-
-        });
-        dataManager.writeAll(productsTable);
-    }
-
     public static void main(String[] args) {
         updateBarcodes(DataManagerFactory.getOzonWebCsvManager());
-    }
-
-    private static class CloseableWebDriverWrapper implements AutoCloseable {
-        private final WebDriver webDriver;
-
-        public CloseableWebDriverWrapper() {
-            webDriver = AppConfig.getWebDriver();
-        }
-
-        public WebDriver getWebDriver() {
-            return webDriver;
-        }
-
-        @Override
-        public void close() throws Exception {
-            if (webDriver != null) webDriver.quit();
-        }
     }
 
 }

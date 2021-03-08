@@ -11,6 +11,6 @@ public interface DataManager {
 
     void writeAll(Table table);
 
-    List<Product> parseProducts(Collection<Table.Raw> maps);
+    List<Product> parseProducts(Collection<Table.Row> maps);
 
 }

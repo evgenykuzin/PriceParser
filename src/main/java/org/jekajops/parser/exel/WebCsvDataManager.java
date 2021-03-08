@@ -13,6 +13,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import org.jekajops.app.loger.Loggable;
 import org.jekajops.entities.Table;
 
 import java.io.FileNotFoundException;
@@ -22,9 +23,9 @@ import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.*;
 
-import static org.jekajops.app.cnfg.TableConfig.*;
+import static org.jekajops.app.cnfg.TableConfig.WebDocConfig.*;
 
-public abstract class WebCsvDataManager implements DataManager {
+public abstract class WebCsvDataManager implements DataManager, Loggable {
     private static final String APPLICATION_NAME = "Parser";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
@@ -125,7 +126,7 @@ public abstract class WebCsvDataManager implements DataManager {
                 raw -> {
                     raw.putIfAbsent(LOWER_PRICE_COL_NAME, "");
                     raw.putIfAbsent(DIFF_PRICES_COL_NAME, "");
-                    raw.putIfAbsent(HREF_COL_NAME, "");
+                    raw.putIfAbsent(CONCURRENT_URL_COL_NAME, "");
                     raw.putIfAbsent(SEARCH_BARCODE_COL_NAME, "");
                 });
     }

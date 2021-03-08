@@ -1,6 +1,7 @@
 package org.jekajops.parser.shop;
 
 import org.jekajops.app.cnfg.AppConfig;
+import org.jekajops.app.loger.Loggable;
 import org.jekajops.entities.OzonProduct;
 import org.jekajops.entities.Product;
 import org.openqa.selenium.*;
@@ -14,7 +15,7 @@ import java.util.Random;
 import static org.jekajops.app.cnfg.AppConfig.logger;
 import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
-public class OzonParserSe implements ShopParser {
+public class OzonParserSe implements ShopParser, Loggable {
     private static final String URL = "https://www.ozon.ru/category/tovary-dlya-vzroslyh-9000/?page=%d&text=%s";
     private WebDriver webDriver;
     private WebDriverWait wait;
@@ -39,18 +40,29 @@ public class OzonParserSe implements ShopParser {
             List<WebElement> elements;
             while (!(elements = getProductsElements(page, barcode)).isEmpty()) {
                 log("elements = " + elements);
+                var iam18By = By.xpath(".//div[@class='c8 _2avF']");
+                var iam18btnBy = By.xpath(".//button[@class='_1-6r']");
+
                 for (WebElement element : elements) {
-                    var nameElement = element
-                            .findElement(By.xpath(".//a[@class='a2g0 tile-hover-target']"));
+                    var nameBy = By.xpath(".//a[@class='a2g0 tile-hover-target']");
+                    var priceBy = By.xpath(".//div[@class='b5v4 a5d2 item']");
+                    var iam18e = webDriver.findElements(iam18By);
+                    if (!iam18e.isEmpty()) iam18e.get(0).findElement(iam18btnBy).click();
+                    var nameElement = element.findElement(nameBy);
                     log("name = " + nameElement.getText());
                     var href = nameElement.getAttribute("href");
                     var price = element
-                            .findElement(By.xpath(".//div[@class='b5v4 a5d2 item']"))
+                            .findElement(priceBy)
                             .findElement(By.tagName("span"))
                             .getText()
                             .replaceAll("\\D", "");
                     log("price = " + price);
-                    products.add(new OzonProduct(0, Double.parseDouble(price), nameElement.getText(), barcode, null, href, null, barcode));
+                    try {
+                        products.add(new OzonProduct(0, Double.parseDouble(price), nameElement.getText(), barcode, null, href, null, barcode, null));
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                        Thread.sleep(1000+new Random().nextInt(1000));
+                    }
                 }
                 if (page > 10) break;
                 page++;
@@ -111,10 +123,6 @@ public class OzonParserSe implements ShopParser {
 
     public void quit() {
         if (webDriver != null) webDriver.quit();
-    }
-
-    private void log(String msg) {
-        logger.log(getClass().getName(), msg);
     }
 
     @Override
