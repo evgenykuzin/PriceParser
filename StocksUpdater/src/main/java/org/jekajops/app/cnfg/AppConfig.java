@@ -11,7 +11,6 @@ import org.jekajops.util.FileManager;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
@@ -63,7 +62,7 @@ public class AppConfig {
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
             options.setAcceptInsecureCerts(true);
-            //options.addArguments(String.format("user-data-dir=%s", FileManager.getFromResources("User Data").getAbsolutePath()));
+            options.addArguments(String.format("user-data-dir=%s", FileManager.getFromResources("User Data").getAbsolutePath()));
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
             BrowserMobProxy proxy = setUpProxy();
             options.setProxy(ClientUtil.createSeleniumProxy(proxy));

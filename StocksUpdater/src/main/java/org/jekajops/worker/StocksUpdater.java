@@ -1,6 +1,8 @@
 package org.jekajops.worker;
 
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jekajops.app.loger.Loggable;
 import org.jekajops.entities.OzonProduct;
@@ -10,7 +12,10 @@ import org.jekajops.parser.exel.DataManagerFactory;
 import org.jekajops.parser.exel.WebCsvDataManager;
 import org.jekajops.parser.util.XmarketParser;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,17 +26,20 @@ public class StocksUpdater implements Runnable, Loggable {
     public void run() {
         log("start updating stocks");
         try {
+            log("try");
             updateStocksWithApi();
-        } catch (IOException e) {
+            log("try ок");
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    public void updateStocksWithApi() throws IOException {
+    public void updateStocksWithApi() throws IOException, InterruptedException {
         var ozonManager = new OzonManager();
         var dataManager = DataManagerFactory.getOzonWebCsvManager();
         var products = dataManager.parseProducts(dataManager.parseTable().values());
         var updatedStocksProducts = XmarketParser.parseNewStocksProducts(products);
+        log("start execute req");
         ozonManager.updateProductStocks(updatedStocksProducts.stream()
                 .map(product -> ((OzonProduct) product))
                 .collect(Collectors.toList()));
