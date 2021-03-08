@@ -16,6 +16,6 @@ public class App {
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
         logger.log("run");
         executorService.scheduleAtFixedRate(new VerboseRunnable(new PriceMonitor(), true), 0, 25, TimeUnit.SECONDS);
-        executorService.scheduleAtFixedRate(new VerboseRunnable(new StocksUpdater(), true), 0, 1, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(new VerboseRunnable(new StocksUpdater(), true), 0, 1, TimeUnit.MINUTES);
     }
 }

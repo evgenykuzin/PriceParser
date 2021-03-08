@@ -63,7 +63,7 @@ public class AppConfig {
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
             options.setAcceptInsecureCerts(true);
-            options.addArguments(String.format("user-data-dir=%s", FileManager.getFromResources("User Data").getAbsolutePath()));
+            //options.addArguments(String.format("user-data-dir=%s", FileManager.getFromResources("User Data").getAbsolutePath()));
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
             BrowserMobProxy proxy = setUpProxy();
             options.setProxy(ClientUtil.createSeleniumProxy(proxy));

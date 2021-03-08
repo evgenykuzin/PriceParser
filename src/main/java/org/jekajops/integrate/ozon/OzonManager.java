@@ -16,8 +16,8 @@ import org.jekajops.http.services.ClosableHttpService;
 import org.jekajops.http.services.HttpService;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class OzonManager implements Loggable {
     private static final String OZON_CLIENT_ID = "123973";
@@ -96,18 +96,37 @@ public class OzonManager implements Loggable {
         return set;
     }
 
-    public void updateProductStocks(OzonProduct ozonProduct) throws IOException {
-        var j = new JsonBuilder()
-                .addNewArr("stocks")
-                .addInArr(new JsonBuilder()
-                        .addProperty("offer_id", ozonProduct.getArticle())
-                        .addProperty("product_id", ozonProduct.getOzonProductId())
-                        .addProperty("stock", String.valueOf(ozonProduct.getStock()))
+    public void updateProductStocks(Collection<OzonProduct> ozonProducts) throws IOException {
+        var jsonBuilder = new JsonBuilder()
+                .addNewArr("stocks");
+        var mainQueue = new ArrayBlockingQueue<OzonProduct>(ozonProducts.size());
+        mainQueue.addAll(ozonProducts);
+        while (!mainQueue.isEmpty()) {
+            var queue = new ArrayBlockingQueue<OzonProduct>(500);
+            while (queue.remainingCapacity() > 0) {
+                try {
+                    queue.put(mainQueue.poll());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            while (!queue.isEmpty()) {
+                var ozonProduct = queue.poll();
+                var stock = ozonProduct.getStock() > 0 ? ozonProduct.getStock()-1 : 0;
+                jsonBuilder.addInArr(new JsonBuilder()
+                                .addProperty("offer_id", ozonProduct.getArticle())
+                                .addProperty("product_id", ozonProduct.getOzonProductId())
+                                .addProperty("stock", String.valueOf(stock))
                         , "stocks");
-        var resInf = executePostRequest("/v1/products/stocks", j);
-        if (resInf.getAsJsonArray("errors").size() != 0){
-
+            }
+            System.out.println("jsonBuilder = " + jsonBuilder);
+            var resInf = executePostRequest("/v1/products/stocks", jsonBuilder);
+            System.out.println("resInf = " + resInf);
+            if (resInf.getAsJsonArray("errors").size() != 0){
+                log(resInf.toString());
+            }
         }
+
     }
 
     static class JsonBuilder {

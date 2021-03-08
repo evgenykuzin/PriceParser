@@ -77,7 +77,7 @@ public class PriceMonitor implements Runnable, Loggable {
                 map.put(CONCURRENT_URL_COL_NAME, href);
                 map.put(SEARCH_BARCODE_COL_NAME, searchBarcode);
                 table.put(mapKey, map);
-                log("Updated!");
+                log("concurrent price has updated!");
                 dataManager.writeAll(table);
             }
         } catch (Throwable e) {
@@ -106,7 +106,6 @@ public class PriceMonitor implements Runnable, Loggable {
                 currentPriceMap.put(PRICE_COL_NAME, updatedPrice);
                 mapsWithAnotherKey.put(key, currentPriceMap);
             }
-
         });
         return new Table(ID_COL_NAME, new ArrayList<>(table.getKeys()), new ArrayList<>(mapsWithAnotherKey.values()));
     }

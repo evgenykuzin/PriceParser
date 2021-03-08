@@ -12,27 +12,30 @@ import org.jekajops.parser.util.XmarketParser;
 
 import java.io.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.jekajops.app.cnfg.TableConfig.OzonUpdateConfig.*;
 
 public class StocksUpdater implements Runnable, Loggable {
     @Override
     public void run() {
-        updateStocksWithApi();
+        log("start updating stocks");
+        try {
+            updateStocksWithApi();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void updateStocksWithApi() {
+    public void updateStocksWithApi() throws IOException {
         var ozonManager = new OzonManager();
         var dataManager = DataManagerFactory.getOzonWebCsvManager();
         var products = dataManager.parseProducts(dataManager.parseTable().values());
         var updatedStocksProducts = XmarketParser.parseNewStocksProducts(products);
-        updatedStocksProducts.forEach(product -> {
-            try {
-                ozonManager.updateProductStocks((OzonProduct) product);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+        ozonManager.updateProductStocks(updatedStocksProducts.stream()
+                .map(product -> ((OzonProduct) product))
+                .collect(Collectors.toList()));
+        log("stocks has updated");
     }
 
     public void updateStocksWithFile(File inFile) throws IOException {

@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static org.jekajops.app.cnfg.AppConfig.logger;
 import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
 public class OzonParserSe implements ShopParser, Loggable {
@@ -39,10 +38,8 @@ public class OzonParserSe implements ShopParser, Loggable {
             int page = 1;
             List<WebElement> elements;
             while (!(elements = getProductsElements(page, barcode)).isEmpty()) {
-                log("elements = " + elements);
                 var iam18By = By.xpath(".//div[@class='c8 _2avF']");
                 var iam18btnBy = By.xpath(".//button[@class='_1-6r']");
-
                 for (WebElement element : elements) {
                     var nameBy = By.xpath(".//a[@class='a2g0 tile-hover-target']");
                     var priceBy = By.xpath(".//div[@class='b5v4 a5d2 item']");
@@ -119,6 +116,7 @@ public class OzonParserSe implements ShopParser, Loggable {
 
     public void initWebDriver() {
         webDriver = AppConfig.getWebDriver();
+        if (webDriver == null) throw new NullPointerException("WebDriver == null");
     }
 
     public void quit() {
