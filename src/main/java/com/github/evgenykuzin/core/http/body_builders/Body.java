@@ -1,0 +1,5 @@
+package com.github.evgenykuzin.core.http.body_builders;
+
+public interface Body<T> {
+    T getObject();
+}

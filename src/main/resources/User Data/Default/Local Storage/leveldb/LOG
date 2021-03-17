@@ -1,21 +1,9 @@
-2021/03/14-05:13:30.958 8854 Reusing MANIFEST C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Local Storage\leveldb/MANIFEST-000001
-2021/03/14-05:13:30.960 8854 Recovering log #513
-2021/03/14-05:13:30.962 8854 Reusing old log C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Local Storage\leveldb/000513.log 
-2021/03/14-05:21:33.948 bd30 Level-0 table #517: started
-2021/03/14-05:21:33.953 bd30 Level-0 table #517: 21817 bytes OK
-2021/03/14-05:21:33.956 bd30 Delete type=0 #513
-2021/03/14-05:42:33.948 1b68 Level-0 table #519: started
-2021/03/14-05:42:33.952 1b68 Level-0 table #519: 21303 bytes OK
-2021/03/14-05:42:33.955 1b68 Delete type=0 #516
-2021/03/14-06:03:33.948 c7d0 Level-0 table #521: started
-2021/03/14-06:03:33.952 c7d0 Level-0 table #521: 21409 bytes OK
-2021/03/14-06:03:33.954 c7d0 Delete type=0 #518
-2021/03/14-06:03:33.955 c7d0 Compacting 4@0 + 1@1 files
-2021/03/14-06:03:33.986 c7d0 Generated table #522@0: 32416 keys, 646408 bytes
-2021/03/14-06:03:33.986 c7d0 Compacted 4@0 + 1@1 files => 646408 bytes
-2021/03/14-06:03:33.987 c7d0 compacted to: files[ 0 1 1 0 0 0 0 ]
-2021/03/14-06:03:33.988 c7d0 Delete type=2 #512
-2021/03/14-06:03:33.988 c7d0 Delete type=2 #514
-2021/03/14-06:03:33.989 c7d0 Delete type=2 #517
-2021/03/14-06:03:33.989 c7d0 Delete type=2 #519
-2021/03/14-06:03:33.989 c7d0 Delete type=2 #521
+2021/03/17-16:07:07.748 6728 Reusing MANIFEST C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Local Storage\leveldb/MANIFEST-000001
+2021/03/17-16:07:07.752 6728 Recovering log #520
+2021/03/17-16:07:07.756 6728 Reusing old log C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Local Storage\leveldb/000520.log 
+2021/03/17-16:14:10.481 3ad4 Level-0 table #525: started
+2021/03/17-16:14:10.485 3ad4 Level-0 table #525: 24629 bytes OK
+2021/03/17-16:14:10.487 3ad4 Delete type=0 #520
+2021/03/17-16:33:10.483 6208 Level-0 table #527: started
+2021/03/17-16:33:10.489 6208 Level-0 table #527: 21393 bytes OK
+2021/03/17-16:33:10.492 6208 Delete type=0 #524

@@ -1,3 +1,6 @@
-2021/03/14-05:13:31.046 bf8c Reusing MANIFEST C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Session Storage/MANIFEST-000001
-2021/03/14-05:13:31.049 bf8c Recovering log #103
-2021/03/14-05:13:31.051 bf8c Reusing old log C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Session Storage/000103.log 
+2021/03/17-16:07:07.747 3620 Reusing MANIFEST C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Session Storage/MANIFEST-000001
+2021/03/17-16:07:07.750 3620 Recovering log #103
+2021/03/17-16:07:07.753 3620 Reusing old log C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Session Storage/000103.log 
+2021/03/17-16:23:10.761 3184 Level-0 table #107: started
+2021/03/17-16:23:10.771 3184 Level-0 table #107: 16062 bytes OK
+2021/03/17-16:23:10.774 3184 Delete type=0 #103

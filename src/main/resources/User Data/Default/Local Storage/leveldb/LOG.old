@@ -1,24 +1,3 @@
-2021/03/14-03:40:14.103 9570 Reusing MANIFEST C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Local Storage\leveldb/MANIFEST-000001
-2021/03/14-03:40:14.104 9570 Recovering log #503
-2021/03/14-03:40:14.105 9570 Reusing old log C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Local Storage\leveldb/000503.log 
-2021/03/14-03:59:15.899 3550 Level-0 table #507: started
-2021/03/14-03:59:15.907 3550 Level-0 table #507: 23942 bytes OK
-2021/03/14-03:59:15.910 3550 Delete type=0 #503
-2021/03/14-04:20:15.898 3b68 Level-0 table #509: started
-2021/03/14-04:20:15.903 3b68 Level-0 table #509: 21648 bytes OK
-2021/03/14-04:20:15.906 3b68 Delete type=0 #506
-2021/03/14-04:40:15.899 b5f4 Level-0 table #511: started
-2021/03/14-04:40:15.904 b5f4 Level-0 table #511: 21385 bytes OK
-2021/03/14-04:40:15.906 b5f4 Delete type=0 #508
-2021/03/14-04:40:15.907 b5f4 Compacting 4@0 + 1@1 files
-2021/03/14-04:40:15.948 b5f4 Generated table #512@0: 31849 keys, 636053 bytes
-2021/03/14-04:40:15.948 b5f4 Compacted 4@0 + 1@1 files => 636053 bytes
-2021/03/14-04:40:15.950 b5f4 compacted to: files[ 0 1 1 0 0 0 0 ]
-2021/03/14-04:40:15.951 b5f4 Delete type=2 #502
-2021/03/14-04:40:15.951 b5f4 Delete type=2 #504
-2021/03/14-04:40:15.951 b5f4 Delete type=2 #507
-2021/03/14-04:40:15.952 b5f4 Delete type=2 #509
-2021/03/14-04:40:15.952 b5f4 Delete type=2 #511
-2021/03/14-05:00:15.989 89c0 Level-0 table #514: started
-2021/03/14-05:00:16.177 89c0 Level-0 table #514: 21265 bytes OK
-2021/03/14-05:00:16.205 89c0 Delete type=0 #510
+2021/03/17-15:59:01.652 7f0 Reusing MANIFEST C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Local Storage\leveldb/MANIFEST-000001
+2021/03/17-15:59:01.656 7f0 Recovering log #520
+2021/03/17-15:59:01.661 7f0 Reusing old log C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\Local Storage\leveldb/000520.log 
