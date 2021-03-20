@@ -40,12 +40,11 @@ public class PriceMonitor implements Runnable, Loggable {
             var productsQueue = new ArrayBlockingQueue<Product>(productsList.size());
             Collections.shuffle(productsList);
             productsQueue.addAll(productsList);
-
             shopParser = new OzonParserSe();
             while (!productsQueue.isEmpty()) {
-                var product = productsQueue.poll();
-                var searchKey = product.getBarcode();
-                var searchBarcode = ((OzonProduct) product).getSearchBarcode();
+                var ozonProduct = (OzonProduct) productsQueue.poll();
+                var searchKey = ozonProduct.getBarcode();
+                var searchBarcode = ozonProduct.getSearchBarcode();
                 if (searchKey.contains("OZN")) {
                     if (searchBarcode != null && !searchBarcode.isEmpty()) {
                         searchKey = searchBarcode;
@@ -55,20 +54,20 @@ public class PriceMonitor implements Runnable, Loggable {
                     }
                 }
                 Thread.sleep(1000 + new Random().nextInt(3 * 1000));
-                var actualPrice = product.getPrice();
-                log("product: " + product.toString());
+                var actualPrice = ozonProduct.getPrice();
+                log("ozonProduct: " + ozonProduct.toString());
                 var parsedProducts = shopParser.parseProducts(searchKey);
                 if (parsedProducts.isEmpty()) {
                     log("no products was found");
                     continue;
                 }
-                var lowerPriceProduct = shopParser.getLowerPriceProduct(parsedProducts, product);
+                var lowerPriceProduct = shopParser.getLowerPriceProduct(parsedProducts, ozonProduct);
                 var lowerPrice = lowerPriceProduct.getPrice();
                 if (lowerPrice < actualPrice) {
                     log("actualPrice = " + actualPrice);
                     log("lowerPrice = " + lowerPrice);
                 }
-                var mapKey = String.valueOf(product.getId());
+                var mapKey = String.valueOf(ozonProduct.getId());
                 var map = table.get(mapKey);
                 var diff = lowerPrice - actualPrice;
                 var href = ((OzonProduct) lowerPriceProduct).getConcurrentProductUrl();

@@ -111,7 +111,7 @@ public class DataManagerFactory {
         };
     }
 
-    public static XlsxDataManager getMyragToysCsvManager(File inFile) {
+    public static XlsxDataManager getMyragToysDataManager(File inFile) {
         return new XlsxDataManager(inFile, inFile, TableConfig.MiragToysConfig.ARTICLE_COL_NAME) {
             @Override
             public List<Product> parseProducts(Collection<Table.Row> rows) {
