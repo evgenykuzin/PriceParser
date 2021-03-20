@@ -29,7 +29,7 @@ public class PriceMonitor implements Runnable, Loggable {
     public void runTask() {
         ShopParser shopParser = null;
         try {
-            WebCsvDataManager dataManager = DataManagerFactory.getOzonWebCsvManager("/credentials.json");
+            WebCsvDataManager dataManager = DataManagerFactory.getOzonWebCsvManager();
             Table table = dataManager.parseTable();
             try {
                 table = getUpdatedOzonTable(table);

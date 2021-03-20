@@ -81,6 +81,7 @@ public class OzonManager implements Loggable {
                             Double.parseDouble(price),
                             null,
                             null,
+                            null,
                             je.get("offer_id").getAsString(),
                             null,
                             je.get("product_id").getAsString(),

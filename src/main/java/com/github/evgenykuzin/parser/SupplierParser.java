@@ -6,5 +6,4 @@ import java.util.List;
 
 public interface SupplierParser {
     List<Product> parseNewStocksProducts(List<Product> products);
-
 }

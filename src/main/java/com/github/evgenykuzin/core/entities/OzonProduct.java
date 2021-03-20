@@ -11,6 +11,7 @@ public class OzonProduct implements Product {
     private final Integer id;
     private final Double price;
     private final String name;
+    private final String brand;
     private final String barcode;
     private final String article;
     private final String concurrentProductUrl;

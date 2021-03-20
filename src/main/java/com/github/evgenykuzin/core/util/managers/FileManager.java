@@ -2,10 +2,12 @@ package com.github.evgenykuzin.core.util.managers;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,6 +46,16 @@ public class FileManager {
     public static void writeToFile(File file, String text) {
         try {
             Files.writeString(file.toPath(), text);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void writeNextToFile(File file, String string) {
+        try (FileOutputStream fos = new FileOutputStream(file, true)) {
+            var line = string.contains("\n") ? string : string + "\n";
+            fos.write(line.getBytes(StandardCharsets.UTF_8));
+            fos.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
