@@ -19,7 +19,7 @@ public class OzonProductsExistedFilter implements Runnable {
     private final List<Product> products;
     private static final File OUTPUT_FILE_FOR_EXISTED = FileManager.getFromResources("existing_ozon_products.txt");
     private static final File OUTPUT_FILE_FOR_NOT_EXISTED = FileManager.getFromResources("not_existing_ozon_products.txt");
-    private static final File INPUT_FILE = FileManager.getFromResources("Выгрузка_FULL_17.03.21.xls");
+    private static final File INPUT_FILE = FileManager.getFromResources("MyragToys.xls");
     private static final String CHILDREN_PRODUCTS_CATEGORY_SEARCH_URL = "https://www.ozon.ru/search/?page=%d&text=%s&from_global=true&category="+ OzonConstConfig.CategoriesConfig.CHILDREN_CAT;
     private static final double BOTTOM_LIMIT_PRICE = 250.0;
 

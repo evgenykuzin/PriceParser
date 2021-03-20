@@ -32,6 +32,7 @@ public class PriceMonitor implements Runnable, Loggable {
             Table table = dataManager.parseTable();
             try {
                 table = getUpdatedOzonTable(table);
+                dataManager.writeAll(table);
             } catch (Throwable t) {
                t.printStackTrace();
             }
@@ -48,10 +49,9 @@ public class PriceMonitor implements Runnable, Loggable {
                     if (searchBarcode != null && !searchBarcode.isEmpty()) {
                         searchKey = searchBarcode;
                     } else {
-                        searchKey = ozonProduct.getArticle();
+                        continue;
                     }
                 }
-                Thread.sleep(1000 + new Random().nextInt(3 * 1000));
                 var actualPrice = ozonProduct.getPrice();
                 log("ozonProduct: " + ozonProduct.toString());
                 var parsedProducts = shopParser.parseProducts(searchKey);
@@ -98,8 +98,9 @@ public class PriceMonitor implements Runnable, Loggable {
             if (currentPriceMap != null) {
                 var updatedPriceProduct = actualPricesProductsMap.get(key);
                 var updatedPrice = String.valueOf(updatedPriceProduct.getPrice());
-                if (!currentPriceMap.get(PRICE_COL_NAME).equals(updatedPrice)) {
-                    LogConfig.logger.log(PriceMonitor.class.toString(), "was = " + currentPriceMap.get(PRICE_COL_NAME) + " & updatedPrice = " + updatedPrice);
+                var currentPrice = currentPriceMap.get(PRICE_COL_NAME);
+                if (currentPrice != null && !currentPrice.equals(updatedPrice)) {
+                    LogConfig.logger.log(PriceMonitor.class.toString(), "price was: " + currentPrice + " && updatedPrice is: " + updatedPrice);
                 }
                 currentPriceMap.put(PRICE_COL_NAME, updatedPrice);
                 mapsWithAnotherKey.put(key, currentPriceMap);

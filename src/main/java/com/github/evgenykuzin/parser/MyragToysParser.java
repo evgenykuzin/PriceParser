@@ -16,7 +16,7 @@ public class MyragToysParser implements SupplierParser, Loggable {
         List<Product> result = new ArrayList<>();
         DataManager dataManager = DataManagerFactory
                 .getMyragToysDataManager(FileManager
-                        .getFromResources("Выгрузка_FULL_17.03.21.xls"));
+                        .getFromResources("MyragToys.xls"));
         var supplierProducts = dataManager.parseProducts(dataManager.parseTable().values());
         products.forEach(product -> {
             var supProduct = supplierProducts.stream()

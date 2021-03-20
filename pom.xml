@@ -85,7 +85,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>StocksUpdater</id>
+                        <id>PriceParser</id>
                         <configuration>
                             <archive>
                                 <manifest>

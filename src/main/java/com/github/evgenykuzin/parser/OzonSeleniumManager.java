@@ -32,9 +32,6 @@ public class OzonSeleniumManager implements Loggable {
         initWebDriver();
         try {
             webDriver.get("https://www.ozon.ru/");
-            System.out.println(webDriver.getPageSource());
-            System.out.println(webDriver.findElement(By.tagName("iframe")).getAttribute("innerHTML"));
-            System.out.println(webDriver.findElement(By.tagName("iframe")).getAttribute("outerHTML"));
             waitingToSolveCaptcha();
         } catch (Throwable e) {
             e.printStackTrace();
