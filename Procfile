@@ -1,1 +1,1 @@
-priceMonitor: sh target/bin/workerBot.sh
+workerBot: sh target/bin/workerBot.sh

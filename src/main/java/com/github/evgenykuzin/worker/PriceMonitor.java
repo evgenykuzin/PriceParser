@@ -10,7 +10,6 @@ import com.github.evgenykuzin.core.util.cnfg.LogConfig;
 import com.github.evgenykuzin.core.util.loger.Loggable;
 import com.github.evgenykuzin.parser.OzonParserSe;
 import com.github.evgenykuzin.parser.ShopParser;
-import com.github.evgenykuzin.parser.XmarketParser;
 
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -49,8 +48,7 @@ public class PriceMonitor implements Runnable, Loggable {
                     if (searchBarcode != null && !searchBarcode.isEmpty()) {
                         searchKey = searchBarcode;
                     } else {
-                        XmarketParser.updateBarcodes(dataManager);
-                        continue;
+                        searchKey = ozonProduct.getArticle();
                     }
                 }
                 Thread.sleep(1000 + new Random().nextInt(3 * 1000));
