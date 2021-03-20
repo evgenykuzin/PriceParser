@@ -4,7 +4,6 @@ import com.github.evgenykuzin.core.entities.OzonProduct;
 import com.github.evgenykuzin.core.entities.Product;
 import com.github.evgenykuzin.core.util.SearchMatcher;
 import com.github.evgenykuzin.core.util.loger.Loggable;
-import com.github.evgenykuzin.core.util.managers.AntiCaptchaManager;
 import com.github.evgenykuzin.core.util.managers.FileManager;
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
@@ -235,10 +234,6 @@ public class OzonSeleniumManager implements Loggable {
         new WebDriverWait(webDriver, 1000000).until(webDriver -> {
             try {
                 var hash = solveCaptcha();
-                if (hash != null) {
-                    webDriver.findElement(By.xpath("")).sendKeys(hash);
-                    return true;
-                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -272,7 +267,7 @@ public class OzonSeleniumManager implements Loggable {
             }
             DesiredCapabilities capabilities = DesiredCapabilities.chrome();
             options.addArguments("--enable-javascript");
-            //options.addArguments("--headless");
+            options.addArguments("--headless");
             options.addArguments("--disable-gpu");
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
