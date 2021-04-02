@@ -1,12 +1,12 @@
 package com.github.evgenykuzin.worker;
 
-import com.github.evgenykuzin.core.data_managers.DataManager;
 import com.github.evgenykuzin.core.data_managers.DataManagerFactory;
 import com.github.evgenykuzin.core.entities.Product;
-import com.github.evgenykuzin.core.util.cnfg.OzonConstConfig;
-import com.github.evgenykuzin.core.util.cnfg.TableConfig;
-import com.github.evgenykuzin.core.util.managers.FileManager;
+import com.github.evgenykuzin.core.cnfg.OzonConstConfig;
+import com.github.evgenykuzin.core.parser.SupplierManager;
+import com.github.evgenykuzin.core.util_managers.FileManager;
 import com.github.evgenykuzin.parser.OzonSeleniumManager;
+import com.github.evgenykuzin.core.parser.ZooekspressParser;
 import lombok.*;
 
 import java.io.File;
@@ -16,21 +16,21 @@ import java.util.stream.Collectors;
 
 public class OzonProductsExistedFilter implements Runnable {
     private final OzonSeleniumManager ozonSeleniumManager;
-    private final List<Product> products;
     private static final File OUTPUT_FILE_FOR_EXISTED = FileManager.getFromResources("existing_ozon_products.txt");
     private static final File OUTPUT_FILE_FOR_NOT_EXISTED = FileManager.getFromResources("not_existing_ozon_products.txt");
-    private static final File INPUT_FILE = FileManager.getFromResources("MyragToys.xls");
-    private static final String CHILDREN_PRODUCTS_CATEGORY_SEARCH_URL = "https://www.ozon.ru/search/?page=%d&text=%s&from_global=true&category="+ OzonConstConfig.CategoriesConfig.CHILDREN_CAT;
+    private static final String CHILDREN_PRODUCTS_CATEGORY_SEARCH_URL = "https://www.ozon.ru/search/?page=%d&text=%s&from_global=true&category=" + OzonConstConfig.CategoriesConfig.CHILDREN_CAT;
     private static final double BOTTOM_LIMIT_PRICE = 250.0;
 
     OzonProductsExistedFilter() {
-        DataManager dataManager = DataManagerFactory.getMyragToysDataManager(INPUT_FILE);
-        products = dataManager.parseProducts(dataManager.parseTable().values());
         ozonSeleniumManager = new OzonSeleniumManager(CHILDREN_PRODUCTS_CATEGORY_SEARCH_URL);
     }
 
     @Override
     public void run() {
+        work(new ZooekspressParser());
+    }
+
+    public void work(SupplierManager supplierParser) {
         List<String> alwaysCheckedArticles = new ArrayList<>();
 
         List<String> existedArticles = FileManager
@@ -48,39 +48,41 @@ public class OzonProductsExistedFilter implements Runnable {
         var ozonWebDataManager = DataManagerFactory.getOzonWebCsvManager();
         var webTable = ozonWebDataManager.parseTable();
         var ozonWebProductArticles = ozonWebDataManager
-                .parseProducts(webTable.values())
+                .parseProducts()
                 .stream()
-                .filter(product -> product
-                        .getSupplier()
-                        .equals(TableConfig.SuppliersNamesConfig.MiragToysSupplierConst))
+//                .filter(product -> product
+//                        .getSupplierName()
+//                        .equals(supplierParser.getName())
+//                )
                 .map(Product::getArticle)
                 .collect(Collectors.toList());
 
         alwaysCheckedArticles.addAll(existedArticles);
         alwaysCheckedArticles.addAll(notExistedButCheckedArticles);
         alwaysCheckedArticles.addAll(ozonWebProductArticles);
-
+        var products = supplierParser.parseProducts();
         products.stream()
                 .filter(product -> product.getPrice() > BOTTOM_LIMIT_PRICE)
                 .forEach(product -> {
                     var article = product.getArticle();
                     if (!alwaysCheckedArticles.contains(article)) {
-                        var brand = product.getBrand();
+                        var brand = product.getBrandName();
                         System.out.println("product = " + product);
                         if (brand != null) {
                             if (brand.contains("\"")) {
                                 brand = brand.split("\"")[1];
                             }
-                            var sku = ozonSeleniumManager.parseProductsSKUByBarcode(article, product.getName(), brand);
-                            System.out.println("sku = " + sku);
-                            var entry = new Entry(article, sku);
-                            if (sku != null) {
-                                FileManager.writeNextToFile(OUTPUT_FILE_FOR_EXISTED, entry.toString());
-                            } else {
-                                FileManager.writeNextToFile(OUTPUT_FILE_FOR_NOT_EXISTED, entry.toString());
-                            }
+                        }
+                        var sku = ozonSeleniumManager.parseProductsSKUByBarcode(article, product.getName(), brand);
+                        System.out.println("sku = " + sku);
+                        var entry = new Entry(article, sku);
+                        if (sku != null) {
+                            FileManager.writeNextToFile(OUTPUT_FILE_FOR_EXISTED, entry.toString());
+                        } else {
+                            FileManager.writeNextToFile(OUTPUT_FILE_FOR_NOT_EXISTED, entry.toString());
                         }
                     }
+
                 });
     }
 

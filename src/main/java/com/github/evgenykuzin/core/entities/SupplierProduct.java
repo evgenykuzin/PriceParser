@@ -9,12 +9,13 @@ import lombok.*;
 @Getter
 @Setter
 public class SupplierProduct implements Product {
-    private final Integer id;
+    private final Long id;
+    private final String supplierId;
     private final Double price;
     private final String name;
-    private final String brand;
+    private final String brandName;
     private final String barcode;
     private final String article;
     private Integer stock;
-    private final String supplier;
+    private final String supplierName;
 }

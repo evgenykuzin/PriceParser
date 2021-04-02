@@ -1,9 +1,9 @@
 package com.github.evgenykuzin.core.data_managers;
 
+import com.github.evgenykuzin.core.entities.Product;
 import com.github.evgenykuzin.core.entities.Table;
-import com.github.evgenykuzin.core.util.cnfg.TableConfig;
 import com.github.evgenykuzin.core.util.loger.Loggable;
-import com.github.evgenykuzin.core.util.managers.FileManager;
+import com.github.evgenykuzin.core.util_managers.FileManager;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -20,15 +20,18 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.*;
 import java.security.GeneralSecurityException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
+import java.util.function.Consumer;
 
 public abstract class WebCsvDataManager implements DataManager, Loggable {
     private static final String APPLICATION_NAME = "Parser";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
-    public static final String SPREADSHEET_ID = "1E3VpDsMzSJe1hVbzf2Kz-T3sVzQAG8P_YGOQwtrNgrc";
     public static final int GID = 0;
+    public static final String userId = "user3";
     /**
      * Global instance of the scopes required by this quickstart.
      * If modifying these scopes, delete your previously saved tokens/ folder.
@@ -38,29 +41,42 @@ public abstract class WebCsvDataManager implements DataManager, Loggable {
     private String majorDimension;
     private String range;
     private final String credentialsFilePath;
+    private final Comparator<Table.Row> comparator;
+    private final String spreadsheetId;
+    private final String tableIdColName;
+    private final Consumer<Table.Row> beforeRowsConsumer;
+    private final Consumer<Table.Row> afterRowsConsumer;
 
-
-    public WebCsvDataManager(String credentialsFilePath) {
+    public WebCsvDataManager(String credentialsFilePath, String spreadsheetId, String tableIdColName, Comparator<Table.Row> comparator, Consumer<Table.Row> beforeRowsConsumer, Consumer<Table.Row> afterRowsConsumer) {
         this.credentialsFilePath = credentialsFilePath;
+        this.spreadsheetId = spreadsheetId;
+        this.comparator = comparator;
+        this.tableIdColName = tableIdColName;
+        this.beforeRowsConsumer = beforeRowsConsumer;
+        this.afterRowsConsumer = afterRowsConsumer;
         final NetHttpTransport HTTP_TRANSPORT;
         try {
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
             service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                     .setApplicationName(APPLICATION_NAME)
                     .build();
-            range = getAllRange(GID);
+            range = getAllRange();
         } catch (GeneralSecurityException | IOException e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * Creates an authorized Credential object.
-     *
-     * @param HTTP_TRANSPORT The network HTTP Transport.
-     * @return An authorized Credential object.
-     * @throws IOException If the credentials.json file cannot be found.
-     */
+    public WebCsvDataManager(String credentialsFilePath, String spreadsheetId, String tableIdColName) {
+        this(credentialsFilePath, spreadsheetId, tableIdColName, null, row -> {}, row -> {});
+    }
+
+        /**
+         * Creates an authorized Credential object.
+         *
+         * @param HTTP_TRANSPORT The network HTTP Transport.
+         * @return An authorized Credential object.
+         * @throws IOException If the credentials.json file cannot be found.
+         */
     private  Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
         // Load client secrets.
         InputStream in = new FileInputStream(FileManager.getFromResources(credentialsFilePath));
@@ -75,32 +91,29 @@ public abstract class WebCsvDataManager implements DataManager, Loggable {
                 .Builder()
                 .setPort(8888)
                 .build();
-        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user3");
+        return new AuthorizationCodeInstalledApp(flow, receiver).authorize(userId);
     }
 
     private ValueRange getValueRange(String range) throws IOException {
         return service.spreadsheets()
                 .values()
-                .get(SPREADSHEET_ID, range)
+                .get(spreadsheetId, range)
                 .execute();
-
     }
 
-    private String getAllRange(int sheet) throws IOException {
+    private String getAllRange(int size) throws IOException {
+        return String.format("A1:AE%d", size);
+    }
+
+    private String getAllRange() throws IOException {
         var r = service.spreadsheets()
-                .get(SPREADSHEET_ID)
+                .get(spreadsheetId)
                 .execute()
-                .getSheets().get(1)
+                .getSheets().get(0)
                 .getProperties()
                 .getGridProperties()
                 .getRowCount();
-        return String.format("A1:AZ%d", r);
-    }
-
-    private double getDiffPricesInt(Map<String, String> map) {
-        var str = map.get(TableConfig.AdditionalOzonDocFieldsConfig.DIFF_PRICES_COL_NAME);
-        if (str.isEmpty()) return 0;
-        return Double.parseDouble(str);
+        return getAllRange(r*2);
     }
 
     private int getNextIndex(List<List<Object>> values) {
@@ -131,33 +144,32 @@ public abstract class WebCsvDataManager implements DataManager, Loggable {
         if (response == null) return Table.getEmptyTable();
         majorDimension = response.getMajorDimension();
         List<List<Object>> values = response.getValues();
-        var keys = values.get(0);
-        values.remove(keys);
-        AtomicInteger index = new AtomicInteger(getNextIndex(values));
-        var t =  new Table(TableConfig.AdditionalOzonDocFieldsConfig.ID_COL_NAME, keys, values,
-                row -> row.putIfAbsent(TableConfig.AdditionalOzonDocFieldsConfig.ID_COL_NAME, String.valueOf(index.getAndIncrement())),
-                row -> {
-                    row.putIfAbsent(TableConfig.AdditionalOzonDocFieldsConfig.LOWER_PRICE_COL_NAME, "");
-                    row.putIfAbsent(TableConfig.AdditionalOzonDocFieldsConfig.DIFF_PRICES_COL_NAME, "");
-                    row.putIfAbsent(TableConfig.AdditionalOzonDocFieldsConfig.CONCURRENT_URL_COL_NAME, "");
-                    row.putIfAbsent(TableConfig.AdditionalOzonDocFieldsConfig.SUPPLIER_COL_NAME, "");
-                    row.putIfAbsent(TableConfig.AdditionalOzonDocFieldsConfig.SEARCH_BARCODE_COL_NAME, "");
-                });
-
-        return t;
+        var keys = getKeys(values);
+        return new Table(
+                tableIdColName,
+                keys,
+                values,
+                beforeRowsConsumer,
+                afterRowsConsumer
+        );
     }
 
     @Override
     public void writeAll(Table table) {
         try {
             ValueRange valueRange = new ValueRange();
-            var range = getAllRange(GID);
+            var range = getAllRange(table.size()+5);
             valueRange.setRange(range);
             valueRange.setMajorDimension(majorDimension);
-            List<List<Object>> values = table.getValuesMatrix(Comparator.comparingDouble(this::getDiffPricesInt));
+            List<List<Object>> values;
+            if (comparator != null) {
+                values = table.getValuesMatrix(comparator);
+            } else {
+                values = table.getValuesMatrix();
+            }
             valueRange.setValues(values);
             service.spreadsheets().values()
-                    .update(SPREADSHEET_ID, range, valueRange)
+                    .update(spreadsheetId, range, valueRange)
                     .setValueInputOption("RAW")
                     .execute();
         } catch (IOException e) {
@@ -165,5 +177,11 @@ public abstract class WebCsvDataManager implements DataManager, Loggable {
         }
     }
 
+    @Override
+    public List<String> getKeys(List<List<Object>> data) {
+        return defaultGetKeys(data);
+    }
+
+    public abstract List<Product> parseProducts();
 
 }

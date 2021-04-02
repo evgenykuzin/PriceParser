@@ -71,20 +71,36 @@ public class ClosableHttpService implements HttpService<HttpUriRequest, Closeabl
 
     @Override
     public ResponseModel getResponse(RequestModel<HttpUriRequest> request) {
+        CloseableHttpClient client = null;
+        CloseableHttpResponse response = null;
         try {
-            CloseableHttpClient client = constructClient().client();
-            CloseableHttpResponse response = client.execute(request.getRequest());
+            client = constructClient().client();
+            response = client.execute(request.getRequest());
 
             var result = new ResponseModel(
                     readResponse(response),
                     response.getStatusLine().getReasonPhrase(),
                     response.getStatusLine().getStatusCode()
             );
-            response.close();
-            client.close();
+
             return result;
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (client != null) {
+                    client.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return ResponseModel.EMPTY;
     }

@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 
 @Getter
-public class Table extends HashMap<String, Table.Row> {
+public class Table extends LinkedHashMap<String, Table.Row> {
     private final List<String> keys;
     private final String idKeyName;
 
@@ -17,9 +17,9 @@ public class Table extends HashMap<String, Table.Row> {
         return new Table("", Collections.emptyList(), new ArrayList<List<Object>>());
     }
 
-    public Table(String idKeyName, List<Object> keys, Collection<List<Object>> collections, Consumer<Row> beforeRowFiller, Consumer<Row> afterRowFiller) {
+    public Table(String idKeyName, List<String> keys, Collection<List<Object>> collections, Consumer<Row> beforeRowFiller, Consumer<Row> afterRowFiller) {
         this.idKeyName = idKeyName;
-        this.keys = keys.stream().map(Object::toString).collect(toList());
+        this.keys = keys;
         var rowHashMap = new HashMap<String, Row>();
         collections.stream()
                 .map(objects -> {
@@ -36,7 +36,7 @@ public class Table extends HashMap<String, Table.Row> {
         putAll(rowHashMap);
     }
 
-    public Table(String idKeyName, List<Object> keys, Collection<List<Object>> collections) {
+    public Table(String idKeyName, List<String> keys, Collection<List<Object>> collections) {
         this(idKeyName, keys, collections, row -> {
         }, row -> {
         });

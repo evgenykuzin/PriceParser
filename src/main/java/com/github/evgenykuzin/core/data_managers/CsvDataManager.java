@@ -2,7 +2,7 @@ package com.github.evgenykuzin.core.data_managers;
 
 import com.github.evgenykuzin.core.entities.Table;
 import com.github.evgenykuzin.core.util.loger.Loggable;
-import com.github.evgenykuzin.core.util.managers.CsvManager;
+import com.github.evgenykuzin.core.util_managers.CsvManager;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Getter
 @Setter
-public abstract class CsvDataManager implements DataManager, Loggable {
+public class CsvDataManager implements DataManager, Loggable {
     private File inFile;
     private File outFile;
     private String charset;
@@ -29,11 +29,11 @@ public abstract class CsvDataManager implements DataManager, Loggable {
                 .stream()
                 .map(strings -> Arrays.asList(((Object[]) strings)))
                 .collect(Collectors.toList());
-        var keys = data.get(0);
+        var keys = getKeys(data);
         data.remove(keys);
         return new Table(keyColName, keys, data);
     }
-    public Table parseTable(List<Object> keys) {
+    public Table parseTable(List<String> keys) {
         List<List<Object>> data = CsvManager.read(inFile.getAbsolutePath(), charset, separator)
                 .stream()
                 .map(strings -> Arrays.asList(((Object[]) strings)))
@@ -54,6 +54,11 @@ public abstract class CsvDataManager implements DataManager, Loggable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public List<String> getKeys(List<List<Object>> data) {
+        return defaultGetKeys(data);
     }
 
 

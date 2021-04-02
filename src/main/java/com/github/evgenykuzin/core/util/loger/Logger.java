@@ -8,4 +8,10 @@ public interface Logger {
         log("main", msg);
     }
 
+    void logf(String from, String msg, Object... args);
+
+    default void logf(String msg, Object... args) {
+        logf("main", msg, args);
+    }
+
 }

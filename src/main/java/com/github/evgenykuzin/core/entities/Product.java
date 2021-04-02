@@ -1,13 +1,14 @@
 package com.github.evgenykuzin.core.entities;
 
 public interface Product {
-    Integer getId();
+    Long getId();
+    String getSupplierId();
     Double getPrice();
     String getName();
-    String getBrand();
+    String getBrandName();
     String getBarcode();
     String getArticle();
     Integer getStock();
-    String getSupplier();
+    String getSupplierName();
     void setStock(Integer stock);
 }
