@@ -21,41 +21,14 @@ public class TableConfig {
         public static final String SKU_FBO_COL_NAME = "FBO OZON SKU ID";
     }
 
-    public static class OzonUpdateConfig {
-        public static final String ARTICLE_COL_NAME = "артикул";
-        public static final String NAME_COL_NAME = "имя (необязательно)";
-        public static final String STOCKS_COL_NAME = "количество";
-        public static final String PRICE_COL_NAME = "";
-    }
-
     public static class XmarketConfig {
         public static final String ID_COL_NAME = "ELEMENT_ID";
         public static final String PRICE_COL_NAME = "Цена клиента";
         public static final String NAME_COL_NAME = "Название";
-        public static final String BRAND_COL_NAME = "";
+        public static final String BRAND_COL_NAME = "ТМ";
         public static final String ARTICLE_COL_NAME = "Артикул";
         public static final String BARCODE_COL_NAME = "Штрихкод";
         public static final String STOCKS_COL_NAME = "Остаток на складе";
-    }
-
-    public static class SexTrgConfig {
-        public static final String ID_COL_NAME = "C1";
-        public static final String NAME_COL_NAME = "C3";
-        public static final String BRAND_COL_NAME = "";
-        public static final String PRICE_COL_NAME = "цена";
-        public static final String ARTICLE_COL_NAME = "C2";
-        public static final String BARCODE_COL_NAME = "C15";
-        public static final String STOCKS_COL_NAME = "C14";
-    }
-
-    public static class SportOptomConfig {
-        public static final String ID_COL_NAME = "КОДЫ";
-        public static final String NAME_COL_NAME = "ТМЦ";
-        public static final String BRAND_COL_NAME = "";
-        public static final String PRICE_COL_NAME = "цена при сумме заказа  300000-359999 руб.";
-        public static final String ARTICLE_COL_NAME = "";
-        public static final String BARCODE_COL_NAME = "Баркод";
-        public static final String STOCKS_COL_NAME = "Склад";
     }
 
     public static class MiragToysConfig {
@@ -70,8 +43,10 @@ public class TableConfig {
     public static class ZooekspressConfig {
         public static final String ID_COL_NAME = "ID";
         public static final String NAME_COL_NAME = "Наименование";
+        public static final String BRAND_COL_NAME = "Изготовитель";
         public static final String PRICE_COL_NAME = "Цена за шт., руб.";
         public static final String ARTICLE_COL_NAME = "Артикул";
+        public static final String PACKAGE_STOCK = "Кол-во в упак.";
     }
 
 }

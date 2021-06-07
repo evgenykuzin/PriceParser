@@ -1,10 +1,11 @@
 package com.github.evgenykuzin.parser;
 
-import com.github.evgenykuzin.core.entities.OzonProduct;
-import com.github.evgenykuzin.core.entities.Product;
+import com.github.evgenykuzin.core.entities.Price;
+import com.github.evgenykuzin.core.entities.product.OzonProduct;
+import com.github.evgenykuzin.core.entities.product.Product;
 import com.github.evgenykuzin.core.util.SearchMatcher;
 import com.github.evgenykuzin.core.util.loger.Loggable;
-import com.github.evgenykuzin.core.util_managers.AntiCaptchaManager;
+import com.github.evgenykuzin.selenium.AntiCaptchaManager;
 import com.github.evgenykuzin.core.util_managers.FileManager;
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
@@ -144,16 +145,16 @@ public class OzonSeleniumManager implements Loggable {
         return sku;
     }
 
-    public List<Product> parseProductsPricesByBarcode(String barcode) {
-        var products = new ArrayList<Product>();
-        if (barcode == null || barcode.isEmpty()) {
-            log("Empty barcode search key!");
-            return products;
+    public Price parseLowerPriceBySearchKey(Price price, String searchKey) {
+        var prices = new ArrayList<Price>();
+        if (searchKey == null || searchKey.isEmpty()) {
+            log("Empty searchKey search key!");
+            return null;
         }
         try {
             int page = 1;
             List<WebElement> elements;
-            while (!(elements = getProductsElements(page, barcode)).isEmpty()) {
+            while (!(elements = getProductsElements(page, searchKey)).isEmpty()) {
                 var iam18By = By.xpath(".//div[@class='c8 _2avF']");
                 var iam18btnBy = By.xpath(".//button[@class='_1-6r']");
                 for (WebElement element : elements) {
@@ -164,27 +165,88 @@ public class OzonSeleniumManager implements Loggable {
                     var nameElement = element.findElement(nameBy);
                     log("name = " + nameElement.getText());
                     var href = nameElement.getAttribute("href");
-                    var price = element
+                    var concurrentPrice = element
                             .findElement(priceBy)
                             .findElement(By.tagName("span"))
                             .getText()
                             .replaceAll("\\D", "");
-                    log("price = " + price);
+                    log("concurrentPrice = " + concurrentPrice);
                     try {
-                        products.add(new OzonProduct(0L, null, nameElement.getText(), null, barcode, barcode, Double.parseDouble(price), null, null, null, null, null, null, Double.parseDouble(price), href));
+                        Price concPrice = new Price();
+                        concPrice.setPrice(Double.valueOf(concurrentPrice));
+                        concPrice.setConcurrentUrl(href);
+                        concPrice.setProduct(price.getProduct());
+                        prices.add(concPrice);
                     } catch (NumberFormatException e) {
                         e.printStackTrace();
                     }
                 }
                 if (page > 10) break;
                 page++;
-                Thread.sleep(100 + new Random().nextInt(100));
+                Thread.sleep(50 + new Random().nextInt(50));
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             log(e.getMessage());
         }
-        return products;
+        return getLowerPrice(prices, price);
+    }
+
+    private Price getLowerPrice(List<Price> prices, Price actualPricePrice) {
+        prices.add(actualPricePrice);
+        return prices
+                .stream()
+                .min(Comparator.comparingDouble(Price::getPrice))
+                .orElse(actualPricePrice);
+    }
+
+    public String parseProductDescriptionByBarcode(String barcode) {
+        if (barcode == null || barcode.isEmpty()) {
+            log("Empty barcode search key!");
+            return null;
+        }
+        try {
+            List<WebElement> elements = getProductsElements(1, barcode);
+            if (elements.isEmpty()) return null;
+            var iam18By = By.xpath(".//div[@class='c8 _2avF']");
+            var iam18btnBy = By.xpath(".//button[@class='_1-6r']");
+            for (WebElement element : elements) {
+                var nameBy = By.xpath(".//a[@class='a2g0 tile-hover-target']");
+                var iam18e = webDriver.findElements(iam18By);
+                if (!iam18e.isEmpty()) iam18e.get(0).findElement(iam18btnBy).click();
+
+                var nameElement = element.findElement(nameBy);
+                String nameText = nameElement.getText();
+                log("name = " + nameElement.getText());
+                var href = nameElement.getAttribute("href");
+                webDriver.get(href);
+                StringBuilder stringBuilder;
+                try {
+                    stringBuilder = new StringBuilder();
+                    var liElements = webDriver
+                            .findElements(By.xpath("div[@class='b0v1']"))
+                            .get(0)
+                            .findElements(By.tagName("ul"))
+                            .get(0)
+                            .findElements(By.tagName("li"));
+
+                    for (var li : liElements) {
+                        stringBuilder.append(li.getText());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    stringBuilder = new StringBuilder(nameText);
+                }
+
+                if (stringBuilder.length() > 0) {
+                    return stringBuilder.toString();
+                }
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            log(e.getMessage());
+        }
+        return null;
     }
 
     private List<WebElement> getProductsElements(int page, String key, Consumer<WebDriver> filter) throws IOException, InterruptedException {
@@ -383,10 +445,10 @@ public class OzonSeleniumManager implements Loggable {
 
     private static String getAuthorizeAnticaptchaScript(String anticaptchaKey) {
         return String.format("return window.postMessage({\n" +
-                        "        receiver: \"antiCaptchaPlugin\",\n" +
-                        "        data: {'options': {'antiCaptchaApiKey': '%s'}},\n" +
-                        "        type: \"setOptions\"\n" +
-                        "    }, window.location.href);\n", anticaptchaKey);
+                "        receiver: \"antiCaptchaPlugin\",\n" +
+                "        data: {'options': {'antiCaptchaApiKey': '%s'}},\n" +
+                "        type: \"setOptions\"\n" +
+                "    }, window.location.href);\n", anticaptchaKey);
     }
 
 

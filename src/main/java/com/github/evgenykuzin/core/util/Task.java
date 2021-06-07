@@ -41,9 +41,8 @@ public class Task {
             boolean timeIsInRange = timeIsInRange(currentTime, startTime, endTime);
             boolean timeAfter = currentTime.after(endTime);
             if (timeIsInRange && !isComplete) {
-                isComplete = true;
-                taskJob.start();
-                return true;
+                isComplete = taskJob.start();
+                return isComplete;
             } else if (isComplete && timeAfter) {
                 isComplete = false;
                 return false;
@@ -85,7 +84,7 @@ public class Task {
     }
 
     public interface TaskJob {
-        void start();
+        boolean start();
     }
 
 }

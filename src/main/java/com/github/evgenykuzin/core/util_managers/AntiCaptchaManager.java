@@ -1,8 +1,8 @@
 package com.github.evgenykuzin.core.util_managers;
 
-import com.github.evgenykuzin.core.http.headers.HeadersModelImpl;
-import com.github.evgenykuzin.core.http.services.HttpService;
-import com.github.evgenykuzin.core.http.services.NetHttpService;
+import com.github.evgenykuzin.core.util.http.headers.HeadersModelImpl;
+import com.github.evgenykuzin.core.util.http.services.HttpService;
+import com.github.evgenykuzin.core.util.http.services.NetHttpService;
 import com.google.gson.JsonParser;
 
 public class AntiCaptchaManager {

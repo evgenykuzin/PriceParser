@@ -54,28 +54,30 @@ public class Table extends LinkedHashMap<String, Table.Row> {
     }
 
     private void fillBaseRow(Row row, List<Object> objects) {
-        if (objects.size() < keys.size()) {
-            var s = keys.size() - objects.size() + 2;
+        var objectsCopy = new ArrayList<>(objects);
+        int objectsSize = objectsCopy.size();
+        if (objectsSize < keys.size()) {
+            var s = keys.size() - objectsSize + 2;
             for (int i = 0; i < s; i++) {
-                objects.add("");
+                objectsCopy.add("");
             }
         }
         for (int i = 0; i < keys.size(); i++) {
             var key = keys.get(i);
-            var obj = objects.get(i);
+            var obj = objectsCopy.get(i);
             var value = obj == null ? null : obj.toString();
             if (key.equals(idKeyName) && (value == null || value.isEmpty())) continue;
             row.put(key, value);
         }
     }
 
-    public List<List<Object>> getValuesMatrix(Comparator<Row> srt) {
+    public List<List<Object>> getValuesMatrix(Comparator<Row> comparator) {
         List<List<Object>> res = new ArrayList<>();
         res.add(keys.stream()
                 .map(s -> ((Object) s))
                 .collect(Collectors.toList()));
         List<List<Object>> v = values().stream()
-                .sorted(srt)
+                .sorted(comparator)
                 .map(row -> row.values()
                         .stream()
                         .map(s -> ((Object) s))

@@ -14,6 +14,7 @@ public class App {
         setLogger(new BasicLogger());
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
         LogConfig.logger.log("run PriceMonitor");
-        executorService.scheduleAtFixedRate(new VerboseRunnable(new PriceMonitor(), true), 0, 5, TimeUnit.SECONDS);
+        //executorService.scheduleAtFixedRate(new VerboseRunnable(FromOzonProductsUpdater.getInstance(), true), 0, 7, TimeUnit.MINUTES);
+        executorService.scheduleAtFixedRate(new VerboseRunnable(new PriceMonitor(), true), 0, 5, TimeUnit.MINUTES);
     }
 }

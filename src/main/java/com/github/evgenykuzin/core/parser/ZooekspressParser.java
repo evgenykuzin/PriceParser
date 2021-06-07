@@ -1,59 +1,70 @@
 package com.github.evgenykuzin.core.parser;
 
-import com.github.evgenykuzin.core.api_integrations.ozon.OzonManager;
 import com.github.evgenykuzin.core.cnfg.TableConfig;
-import com.github.evgenykuzin.core.data_managers.XlsxDataManager;
-import com.github.evgenykuzin.core.entities.Product;
-import com.github.evgenykuzin.core.entities.SupplierProduct;
+import com.github.evgenykuzin.core.db.dao.ProductDAO;
+import com.github.evgenykuzin.core.entities.Table;
+import com.github.evgenykuzin.core.entities.product.Product;
+import com.github.evgenykuzin.core.entities.product.SupplierProduct;
 import com.github.evgenykuzin.core.util.loger.Loggable;
-import com.github.evgenykuzin.core.util_managers.FileManager;
-import com.github.evgenykuzin.core.util_managers.MailManager;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import com.github.evgenykuzin.core.util_managers.FTPManager;
+import com.github.evgenykuzin.core.util_managers.data_managers.XlsxDataManager;
+import org.apache.poi.ss.usermodel.*;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class ZooekspressParser implements SupplierManager, Loggable {
+public class ZooekspressParser implements SupplierParser, Loggable {
     private static final int STOCK_CONST = 3;
     private static final String ORDER_STOCK_COL_NAME = "Заказ, шт.";
-    private static final File mainFile =
-            FileManager.getFromResources("zooekspress.xls");
-    private File orderFile;
+    private static final String mainFileName = "zooekspress";
+    private static final File mainFile = FTPManager.getFileFromSuppliers(mainFileName, ".xls");
 
     @Override
-    public String getName() {
-        return "Zooekspress";
+    public SUPPLIER_NAME getName() {
+        return SUPPLIER_NAME.Zooekspress;
     }
 
     @Override
-    public List<Product> parseNewStocksProducts(List<Product> products) {
+    public List<SupplierProduct> parseNewStocksProducts(List<Product> products) {
         var supProducts = parseProducts();
+        var resultProducts = new ArrayList<SupplierProduct>();
+        if (supProducts.isEmpty()) return resultProducts;
         for (Product product : products) {
             if (product.getArticle() == null) continue;
-            for (Product supProduct : supProducts) {
+            boolean exists = false;
+            SupplierProduct productToAdd = null;
+            for (SupplierProduct supProduct : supProducts) {
                 if (supProduct.getArticle() == null) continue;
                 if (supProduct.getArticle().equals(product.getArticle())) {
-                    product.setStock(STOCK_CONST);
+                    if (supProduct.getBrandName().equalsIgnoreCase(product.getBrandName())) {
+                        productToAdd = supProduct;
+                        productToAdd.setStock(STOCK_CONST);
+                        exists = true;
+                        break;
+                    }
                 }
             }
+            if (!exists) {
+                productToAdd = new SupplierProduct();
+                productToAdd.setProductId(product.getId());
+                productToAdd.setArticle(product.getArticle());
+                productToAdd.setBarcode(product.getBarcode());
+                productToAdd.setName(product.getName());
+                productToAdd.setBrandName(product.getBrandName());
+                productToAdd.setSupplierName(product.getSupplierName());
+                productToAdd.setStock(0);
+            }
+            resultProducts.add(productToAdd);
         }
-        return products;
+        return resultProducts;
     }
 
     @Override
-    public List<Product> parseProducts() {
-        File file = MailManager.getImapMailManager().downloadFileFromSuppliers("@zooexpress.ru", "прайс", null, MailManager.PRICES_FOLDER);
-        copyFiles(file, mainFile);
-        var dataManager = new XlsxDataManagerImpl(
-                mainFile,
-                TableConfig.ZooekspressConfig.ARTICLE_COL_NAME
-        );
+    public List<SupplierProduct> parseProducts() {
+        File file = FTPManager.getFileFromSuppliers("zooekspress", ".xls");
+        var dataManager = new XlsxDataManagerImpl(file);
         return dataManager.parseProductsList(row -> {
                     var idStr = row.get(TableConfig.ZooekspressConfig.ID_COL_NAME);
                     var id = idStr == null ? null : (long) Double.parseDouble(idStr);
@@ -61,10 +72,18 @@ public class ZooekspressParser implements SupplierManager, Loggable {
                     var price = priceStr == null ? null : Double.parseDouble(priceStr);
                     var name = row.get(TableConfig.ZooekspressConfig.NAME_COL_NAME);
                     var article = row.get(TableConfig.ZooekspressConfig.ARTICLE_COL_NAME);
-                    Integer stocks = null;
-                    String brand = null;
-                    String barcode = null;
-                    return new SupplierProduct(id, idStr, price, name, brand, barcode, article, stocks, getName());
+                    String brand = row.get(TableConfig.ZooekspressConfig.BRAND_COL_NAME);
+                    Integer stock = STOCK_CONST;
+                    Integer packageStock = Double.valueOf(row.get(TableConfig.ZooekspressConfig.PACKAGE_STOCK)).intValue();
+                    var product = new SupplierProduct();
+                    product.setName(name);
+                    product.setArticle(article);
+                    product.setBrandName(brand);
+                    product.setBarcode(null);
+                    product.setPrice(price);
+                    product.setStock(stock);
+                    product.setSupplierName(getName());
+                    return product;
                 }
         );
     }
@@ -75,9 +94,9 @@ public class ZooekspressParser implements SupplierManager, Loggable {
             log("orders is empty");
             return false;
         }
-        orderFile = FileManager.getFromResources("zooekspress_order.xls");
-        copyFiles(mainFile, orderFile);
+        var orderFile = FTPManager.getFileFromSuppliers("zooekspress", ".xls");
         Workbook wb;
+        if (orderFile == null) return false;
         try (var inp = new FileInputStream(orderFile)) {
             wb = WorkbookFactory.create(inp);
             try {
@@ -126,24 +145,70 @@ public class ZooekspressParser implements SupplierManager, Loggable {
     }
 
     public File getOrderFile() {
-        return orderFile;
-    }
-
-    private static void copyFiles(File source, File target) {
-        try (var fos = new FileOutputStream(target)) {
-            Files.copy(source.toPath(), fos);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        return FTPManager.getFileFromSuppliers("zooekspress_order", ".xls");
     }
 
     private static class XlsxDataManagerImpl extends XlsxDataManager {
-        public XlsxDataManagerImpl(File inFile, String keyColName) {
+        private static final String keyColName = TableConfig.ZooekspressConfig.ARTICLE_COL_NAME;
+        private final File inFile;
+
+        public XlsxDataManagerImpl(File inFile) {
             super(inFile, keyColName);
+            this.inFile = inFile;
         }
 
-        public XlsxDataManagerImpl(File inFile, File outFile, String keyColName) {
-            super(inFile, outFile, keyColName);
+        @Override
+        public synchronized Table parseTable() {
+            List<List<Object>> data = new ArrayList<>();
+            try (var inp = new FileInputStream(inFile)) {
+                var wb = WorkbookFactory.create(inp);
+                Sheet sheet = wb.getSheetAt(0);
+                int rowsCount = sheet.getLastRowNum();
+                String lastBrandName = "LAST_BRAND_NAME";
+                for (int i = 0; i <= rowsCount; i++) {
+                    List<Object> rowList = new ArrayList<>();
+                    Row row = sheet.getRow(i);
+                    if (row != null) {
+                        int colCounts = row.getLastCellNum();
+                        for (int j = 0; j < colCounts; j++) {
+                            Cell cell = row.getCell(j);
+                            if (cell != null) {
+                                String cellValue;
+                                CellType cellType = cell.getCellType();
+                                var color = cell.getCellStyle().getFillForegroundColor();
+                                switch (cellType) {
+                                    case STRING: {
+                                        cellValue = cell.getStringCellValue();
+                                        break;
+                                    }
+                                    case NUMERIC: {
+                                        cellValue = String.valueOf(cell.getNumericCellValue());
+                                        break;
+                                    }
+                                    default:
+                                        cellValue = cell.toString();
+                                }
+                                if (!cellValue.isEmpty() && color == 51) {
+                                    lastBrandName = cellValue;
+                                } else if (color == 64) {
+                                    rowList.add(cellValue);
+                                }
+                            }
+                        }
+                        rowList.add(lastBrandName);
+                    }
+                    data.add(rowList);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return Table.getEmptyTable();
+            }
+            var keys = getKeys(data);
+            keys.remove("");
+            keys.remove("");
+            keys.remove("LAST_BRAND_NAME");
+            keys.add(TableConfig.ZooekspressConfig.BRAND_COL_NAME);
+            return new Table(keyColName, keys, data);
         }
 
         @Override
@@ -168,9 +233,10 @@ public class ZooekspressParser implements SupplierManager, Loggable {
     }
 
     public static void main(String[] args) {
+        var res = ProductDAO.getInstance().searchByArticleAndName("1306М", "Клетка ЗооЛайф Макси для шиншилл, 56 х 50 х 96,5 см, складная");
+        System.out.println("res = " + res);
         var z = new ZooekspressParser();
-        var op = new OzonManager().getOrderedProducts();
-        System.out.println("op = " + op);
-        z.sendOrders(op);
+        var p = z.parseProducts();
+        System.out.println("p = " + p);
     }
 }

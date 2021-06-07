@@ -1,18 +1,41 @@
 package com.github.evgenykuzin.core.entities;
 
-import com.github.evgenykuzin.core.parser.SupplierManager;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Collection;
+import javax.persistence.Table;
+import javax.persistence.*;
+import java.sql.Timestamp;
 
-@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString
+@EqualsAndHashCode
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@NoArgsConstructor
+@Getter
+@Setter
+@Data
+@Entity
+@Table(name = "orders")
 public class Order {
-    Client client;
-    Collection<Product> products;
-    SupplierManager supplierManager;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+
+    @Column(name = "product_id")
+    Long productId;
+
+    @Column(name = "supplier_enum")
+    String supplierEnum;
+
+    @Column(name = "marketplace_enum")
+    String marketplaceEnum;
+
+    @Column(name = "count")
+    Integer count;
+
+    @Column(name = "timestamp")
+    Timestamp timestamp;
+
+
 }

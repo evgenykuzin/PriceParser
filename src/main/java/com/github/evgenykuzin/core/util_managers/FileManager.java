@@ -9,7 +9,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -19,17 +18,24 @@ public class FileManager {
         return new File(str);
     }
 
-    public static File getOrCreateIfNotExist(String name, String suffix) {
+    public static File getOrCreateIfNotExist(String name, String suffix, boolean deleteOnExit) {
         File file;
         file = getFromResources(name+suffix);
         if (!file.exists()) {
             try {
                 file = File.createTempFile(name, suffix, getResourcesDir());
+                if (deleteOnExit) {
+                    file.deleteOnExit();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         return file;
+    }
+
+    public static File getOrCreateIfNotExist(String name, String suffix) {
+        return getOrCreateIfNotExist(name, suffix, true);
     }
 
     public static boolean containsInResources(String name) {
@@ -44,7 +50,7 @@ public class FileManager {
     }
 
     public static File download(String urlString, String fileName, String suffix) throws IOException {
-        Path path = Files.createTempFile(Paths.get(getFromResources("").getAbsolutePath()), fileName, suffix);
+        Path path = Files.createTempFile(fileName, suffix);
         return download(urlString, path.toFile());
     }
 

@@ -21,9 +21,9 @@ public class MailManager {
     private final String IMAP_SERVER = "imap.yandex.ru";
     public static final String SUPPLIERS_FOLDER = "Поставщики";
     public static final String PRICES_FOLDER = "Прайсы";
-    private static Properties properties;
+    private static volatile Properties properties;
 
-    public static MailManager getImapMailManager() {
+    public static synchronized MailManager getImapMailManager() {
         properties = new Properties();
         properties.put("mail.imap.host", "imap.yandex.ru");
         properties.put("mail.store.protocol", "imaps");
@@ -34,7 +34,7 @@ public class MailManager {
         return new MailManager();
     }
 
-    public static MailManager getSmtpMailManager() {
+    public static synchronized MailManager getSmtpMailManager() {
         properties = new Properties();
         properties.put("mail.smtp.host", "smtp.yandex.ru");
         properties.put("mail.smtp.auth", "true");
@@ -47,16 +47,23 @@ public class MailManager {
     private MailManager() {
     }
 
-    public void sendMessage(String toEmailAddress, String subject, String text, File... files) {
-        Session session = Session.getDefaultInstance(properties,
-                new Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(yandexLogin, yandexPassword);
-                    }
-                });
+    public synchronized boolean sendMessage(String toEmailAddress, String subject, String text, File... files) {
+        Session session;
+        Message message;
+        try {
+            session = Session.getDefaultInstance(properties,
+                    new Authenticator() {
+                        @Override
+                        protected PasswordAuthentication getPasswordAuthentication() {
+                            return new PasswordAuthentication(yandexLogin, yandexPassword);
+                        }
+                    });
 
-        Message message = new MimeMessage(session);
+            message = new MimeMessage(session);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
         try {
             message.setFrom(new InternetAddress(FROM_EMAIL_ADDRESS));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmailAddress));
@@ -73,46 +80,42 @@ public class MailManager {
             }
             Transport.send(message);
             LogConfig.logger.log("Message request for stocks to email " + toEmailAddress + " was SENT");
+            return true;
         } catch (MessagingException | IOException e) {
             e.printStackTrace();
             LogConfig.logger.log("Message request for stocks to email " + toEmailAddress + " was FAILED");
+            return false;
         } finally {
             properties.clear();
         }
     }
 
-    public void sendMessage(String toEmailAddress, String subject, String text) {
-        sendMessage(toEmailAddress, subject, text, new File[0]);
+    public synchronized boolean sendMessage(String toEmailAddress, String subject, String text) {
+        return sendMessage(toEmailAddress, subject, text, new File[0]);
     }
 
-    public File downloadFileFromSuppliers(String fromEmailAddress, String fileNameToSearch, String subject, String folderName) {
-        File resultFile = null;
+    public synchronized File downloadFileFromSuppliers(String fromEmailAddress, String fileNameToSearch, String subject, String folderName) {
         try {
             List<YandexMessage> messages = getMessages(fromEmailAddress, folderName, subject, fileNameToSearch);
             for (YandexMessage message : messages) {
-                if (resultFile != null) break;
-                for (File webFile : message.getAttachments()) {
-                    if (resultFile != null) break;
-                    LogConfig.logger.log(MailManager.class.toString(), "fileNameToSearch: " + fileNameToSearch.toLowerCase());
-                    LogConfig.logger.log(MailManager.class.toString(), "webFileName: " + webFile.getName().toLowerCase());
-                    if (containsIgnoreCase(webFile.getName(), fileNameToSearch)) {
-                        LogConfig.logger.log("File from email " + fromEmailAddress + " has GOTTEN");
-                        resultFile = webFile;
-                    }
+                File webFile = message.getAttachment();
+                if (webFile != null) {
+                    LogConfig.logger.log("File from email " + fromEmailAddress + " has GOTTEN");
+                    return webFile;
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
             LogConfig.logger.log("File from email " + fromEmailAddress + " has FAILED to download");
         }
-        return resultFile;
+        return null;
     }
 
-    public File downloadFileFromSuppliers(String fromEmailAddress, String fileNameToSearch, String folderName) {
+    public synchronized File downloadFileFromSuppliers(String fromEmailAddress, String fileNameToSearch, String folderName) {
         return downloadFileFromSuppliers(fromEmailAddress, fileNameToSearch, null, folderName);
     }
 
-    public List<YandexMessage> getMessages(String fromEmailAddress, String folderName, String subject, String fileNameToSearch) {
+    public synchronized List<YandexMessage> getMessages(String fromEmailAddress, String folderName, String subject, String fileNameToSearch) {
         List<YandexMessage> messages = new ArrayList<>();
         try {
             Session session = Session.getDefaultInstance(properties, new Authenticator() {
@@ -144,14 +147,14 @@ public class MailManager {
             } catch (MessagingException e) {
                 e.printStackTrace();
             } finally {
-                if (store != null) {
+                if (store != null && store.isConnected()) {
                     try {
                         store.close();
                     } catch (MessagingException e) {
                         e.printStackTrace();
                     }
                 }
-                if (customFolder != null) {
+                if (customFolder != null && customFolder.isOpen()) {
                     customFolder.close(true);
                 }
             }
@@ -162,8 +165,7 @@ public class MailManager {
         return messages;
     }
 
-    private Collection<YandexMessage> getMessagesFromFolder(String fromEmailAddress, Folder folder, String subjectForSearch, String fileNameToSearch) throws MessagingException {
-        // Открываем папку в режиме только для чтения
+    private synchronized Collection<YandexMessage> getMessagesFromFolder(String fromEmailAddress, Folder folder, String subjectForSearch, String fileNameToSearch) throws MessagingException {
         folder.open(Folder.READ_ONLY);
         System.out.println("folder = " + folder.getName());
         if (folder.getMessageCount() == 0) return null;
@@ -172,42 +174,40 @@ public class MailManager {
             public boolean match(Message message) {
                 try {
                     var subjectMatch = subjectForSearch == null || containsIgnoreCase(message.getSubject(), subjectForSearch);
-                    var fileNameMatch = fileNameToSearch == null || containsIgnoreCase(message.getFileName(), fileNameToSearch);
                     return Arrays.stream(message.getFrom())
                             .anyMatch(address -> containsIgnoreCase(address.toString(), fromEmailAddress))
-                            && subjectMatch
-                            && fileNameMatch;
+                            && subjectMatch;
                 } catch (MessagingException e) {
                     e.printStackTrace();
                 }
                 return false;
             }
         });
-        System.out.println("searchMessages = " + Arrays.toString(searchMessages));
+        System.out.println("searchMessages count = " + searchMessages.length);
         return Arrays.stream(searchMessages)
                 .map(message -> convertToYandexMessage(message, fileNameToSearch))
                 .collect(Collectors.toList());
     }
 
-    private YandexMessage convertToYandexMessage(Message message, String fileNameToSearch) {
+    private synchronized YandexMessage convertToYandexMessage(Message message, String fileNameToSearch) {
         YandexMessage yandexMessage = new YandexMessage();
         try {
-            Collection<File> attachments = findAttachments(message, fileNameToSearch);
-            yandexMessage.setAttachments(attachments);
             yandexMessage.setAuthor(parseAuthorFomMessage(message));
             yandexMessage.setSubject(message.getSubject());
             yandexMessage.setText(getTextFromMessage(message));
+            File attachment = findAttachment(message, fileNameToSearch);
+            yandexMessage.setAttachment(attachment);
         } catch (IOException | MessagingException e) {
             e.printStackTrace();
         }
         return yandexMessage;
     }
 
-    private Collection<YandexMessage> getMessagesFromFolder(String fromEmailAddress, Folder folder, String fileNameToSearch) throws MessagingException {
+    private synchronized Collection<YandexMessage> getMessagesFromFolder(String fromEmailAddress, Folder folder, String fileNameToSearch) throws MessagingException {
         return getMessagesFromFolder(fromEmailAddress, folder, null, fileNameToSearch);
     }
 
-    private String getTextFromMessage(Message message) throws MessagingException, IOException {
+    private synchronized String getTextFromMessage(Message message) throws MessagingException, IOException {
         String result = "";
         if (message.isMimeType("text/csv")) {
             result = message.getContent().toString();
@@ -218,7 +218,7 @@ public class MailManager {
         return result;
     }
 
-    private String getTextFromMimeMultipart(MimeMultipart mimeMultipart) throws MessagingException, IOException {
+    private synchronized String getTextFromMimeMultipart(MimeMultipart mimeMultipart) throws MessagingException, IOException {
         StringBuilder result = new StringBuilder();
         int count = mimeMultipart.getCount();
         for (int i = 0; i < count; i++) {
@@ -236,16 +236,15 @@ public class MailManager {
         return result.toString();
     }
 
-    private String parseAuthorFomMessage(Message message) throws MessagingException, UnsupportedEncodingException {
+    private synchronized String parseAuthorFomMessage(Message message) throws MessagingException, UnsupportedEncodingException {
         return decode(message.getFrom()[0].toString());
     }
 
-    private String decode(String string) throws UnsupportedEncodingException {
+    private synchronized String decode(String string) throws UnsupportedEncodingException {
         return MimeUtility.decodeText(string);
     }
 
-    private Collection<File> findAttachments(Message message, String fileNameToSearch) throws IOException, MessagingException {
-        Collection<File> attachments = new ArrayList<>();
+    private synchronized File findAttachment(Message message, String fileNameToSearch) throws IOException, MessagingException {
         Multipart multipart = (Multipart) message.getContent();
         for (int i = 0; i < multipart.getCount(); i++) {
             BodyPart bodyPart = multipart.getBodyPart(i);
@@ -255,20 +254,20 @@ public class MailManager {
                     && StringUtils.isBlank(bodyPart.getFileName())) {
                 continue;
             }
-            var fileName = decode(bodyPart.getFileName());
+            String fileName = decode(bodyPart.getFileName());
             System.out.println("fileName = " + fileName.toLowerCase());
             if (fileNameToSearch == null || containsIgnoreCase(fileName, fileNameToSearch)) {
-                var splitName = fileName.split("\\.");
-                var file = Files.createTempFile(splitName[0], "." + splitName[1]).toFile();
+                String[] splitName = fileName.split("\\.");
+                File file = Files.createTempFile("attachment", "." + splitName[1]).toFile();
                 file.deleteOnExit();
                 downloadDataToFile(file, bodyPart.getInputStream());
-                attachments.add(file);
+                return file;
             }
         }
-        return attachments;
+        return null;
     }
 
-    private File findFile(Message message, String fileNameToSearch) throws IOException, MessagingException {
+    private synchronized File findFile(Message message, String fileNameToSearch) throws IOException, MessagingException {
         Multipart multipart = (Multipart) message.getContent();
         for (int i = 0; i < multipart.getCount(); i++) {
             BodyPart bodyPart = multipart.getBodyPart(i);
@@ -291,13 +290,10 @@ public class MailManager {
         return null;
     }
 
-    private boolean downloadDataToFile(File file, InputStream input) {
+    private synchronized boolean downloadDataToFile(File file, InputStream input) {
         try {
-//            byte[] attachment = new byte[input.available()];
-//            int r = input.read(attachment);
-//            System.out.println("r = " + r);
             FileOutputStream out = new FileOutputStream(file);
-            byte[] buffer = new byte[8 * 1024];
+            byte[] buffer = new byte[(int) file.length() + 1];
             int bytesRead;
             while ((bytesRead = input.read(buffer)) != -1) {
                 out.write(buffer, 0, bytesRead);
@@ -311,8 +307,8 @@ public class MailManager {
         return true;
     }
 
-    private static boolean containsIgnoreCase(String container, String element) {
-        return container.toLowerCase().contains(element.toLowerCase());
+    private synchronized static boolean containsIgnoreCase(String container, String element) {
+        return container != null && element != null && container.toLowerCase().contains(element.toLowerCase());
     }
 
     @Getter
@@ -321,12 +317,11 @@ public class MailManager {
     @EqualsAndHashCode
     @AllArgsConstructor
     @NoArgsConstructor
-    static
-    class YandexMessage {
+    static class YandexMessage {
         private String author;
         private String subject;
         private String text;
-        private Collection<File> attachments;
+        private File attachment;
     }
 
     public void main(String[] args) throws MessagingException {
