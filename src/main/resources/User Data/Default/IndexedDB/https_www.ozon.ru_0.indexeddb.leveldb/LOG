@@ -1,8 +1,0 @@
-2021/04/30-18:43:10.997 3ed4 Reusing MANIFEST C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\IndexedDB\https_www.ozon.ru_0.indexeddb.leveldb/MANIFEST-000001
-2021/04/30-18:43:10.997 3ed4 Recovering log #101942
-2021/04/30-18:43:10.998 3ed4 Reusing old log C:\Users\JekaJops\IntelliJIDEAProjects\PriceParser\src\main\resources\User Data\Default\IndexedDB\https_www.ozon.ru_0.indexeddb.leveldb/101942.log 
-2021/04/30-18:43:28.827 3ed4 Level-0 table #101946: started
-2021/04/30-18:43:28.827 3ed4 Level-0 table #101946: 0 bytes OK
-2021/04/30-18:43:28.830 3ed4 Delete type=0 #101942
-2021/04/30-18:43:28.831 3ed4 Manual compaction at level-0 from (begin) .. (end); will stop at (end)
-2021/04/30-18:43:28.831 3ed4 Manual compaction at level-1 from (begin) .. (end); will stop at (end)
